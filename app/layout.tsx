@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "Academia Comercial ARCA — Conviértete en asesor certificado",
+    template: "%s · Academia Comercial ARCA",
+  },
+  description:
+    "Aprende desde cero a vender ARCA de forma profesional: prospección, demostración, manejo de objeciones y cierre. Capacitación gratuita, certificación y comisiones recurrentes.",
+  metadataBase: new URL("https://academia.arca.app"),
+  openGraph: {
+    title: "Academia Comercial ARCA",
+    description:
+      "Conviértete en asesor comercial certificado de ARCA. Capacitación gratuita, certificación y comisiones.",
+    type: "website",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="es" className={inter.variable}>
+      <body>{children}</body>
+    </html>
+  );
+}

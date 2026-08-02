@@ -1,0 +1,1635 @@
+/*************************************************************************************************
+ * ACADEMIA COMERCIAL ARCA — BACKEND EN GOOGLE APPS SCRIPT
+ * ---------------------------------------------------------------------------------------------
+ * Copia y pega TODO este archivo en el editor de Apps Script de una Hoja de Cálculo de Google.
+ *
+ * PASOS DE INSTALACIÓN (ver README-DESPLIEGUE.md para detalle):
+ *   1. Crea una Hoja de Cálculo de Google nueva.
+ *   2. Extensiones > Apps Script. Borra el contenido y pega este archivo.
+ *   3. Menú "ARCA" (recarga la hoja) > "1. Inicializar / reparar hojas".
+ *   4. Menú "ARCA" > "2. Configurar secretos" (define PEPPER y crea el admin inicial).
+ *   5. Implementar > Nueva implementación > Aplicación web:
+ *        - Ejecutar como: Yo
+ *        - Quién tiene acceso: Cualquier usuario
+ *      Copia la URL /exec y pégala en NEXT_PUBLIC_APPS_SCRIPT_URL del frontend.
+ *
+ * SEGURIDAD:
+ *   - Las contraseñas NUNCA se guardan en texto plano: SHA-256 con salt por usuario + pepper
+ *     global (PropertiesService), con iteraciones. Apps Script no ofrece bcrypt nativo.
+ *   - Los tokens de sesión son aleatorios; solo se guarda su hash.
+ *   - El rol se valida SIEMPRE en el backend; nunca se confía en el que envíe el cliente.
+ *   - Se sanitizan las entradas para evitar inyección de fórmulas en Sheets.
+ *   - ⚠️  Google Sheets es una solución INICIAL. Al escalar a cientos/miles de vendedores,
+ *       migrar a una base de datos profesional (PostgreSQL/Supabase, como el SaaS ARCA).
+ *************************************************************************************************/
+
+/* ============================================================================================
+ * 1. CONFIGURACIÓN Y CONSTANTES
+ * ==========================================================================================*/
+
+// Duraciones (ms)
+var SESION_DURACION_MS = 1000 * 60 * 60 * 12;      // 12 horas
+var RECUPERACION_DURACION_MS = 1000 * 60 * 30;     // 30 minutos
+var BLOQUEO_MS = 1000 * 60 * 15;                   // 15 min tras varios intentos
+var MAX_INTENTOS_LOGIN = 5;
+var HASH_ITERACIONES = 5000;
+
+// Valores por defecto de la hoja Configuracion (clave -> [valor, descripción])
+var CONFIG_DEFAULTS = {
+  comision_primera_venta: ['0.15', 'Porcentaje de comisión sobre la primera venta (0.15 = 15%)'],
+  comision_renovacion: ['0.05', 'Porcentaje de comisión sobre renovaciones (0.05 = 5%)'],
+  puntaje_minimo: ['85', 'Puntaje mínimo (%) para aprobar y certificar'],
+  intentos_por_examen: ['3', 'Intentos permitidos por examen de módulo'],
+  intentos_examen_final: ['2', 'Intentos permitidos en el examen final'],
+  version_terminos: ['2026.08', 'Versión vigente de términos y condiciones'],
+  moneda: ['USD', 'Moneda base de comisiones'],
+  whatsapp_soporte: ['50500000000', 'WhatsApp de soporte (sin +)'],
+  mantenimiento: ['0', '1 = modo mantenimiento activo (bloquea escrituras de vendedores)']
+};
+
+// Definición de hojas: nombre -> encabezados
+var SHEETS = {
+  Configuracion: ['Clave', 'Valor', 'Descripcion', 'FechaActualizacion'],
+
+  Candidatos: ['CandidateId', 'NombreCompleto', 'Pais', 'Ciudad', 'FechaNacimiento', 'Email',
+    'WhatsApp', 'Documento', 'ZonaHoraria', 'Idioma', 'FuenteConocio', 'Experiencia',
+    'ExperienciaSoftware', 'Sectores', 'Disponibilidad', 'MedioContacto', 'Motivacion',
+    'Estado', 'FechaRegistro', 'UltimaActividad', 'Progreso', 'Certificado'],
+
+  Usuarios: ['UserId', 'CandidateId', 'Email', 'PasswordHash', 'Salt', 'Rol', 'Estado',
+    'DebeCambiarPassword', 'UltimoAcceso', 'IntentosFallidos', 'BloqueadoHasta', 'FechaCreacion'],
+
+  Sesiones: ['SessionId', 'UserId', 'TokenHash', 'FechaCreacion', 'FechaExpiracion', 'Estado',
+    'IP', 'UserAgent'],
+
+  Modulos: ['ModuleId', 'Titulo', 'Descripcion', 'Orden', 'Obligatorio', 'Estado',
+    'TiempoEstimado', 'PuntajeMinimo'],
+
+  Progreso: ['ProgressId', 'CandidateId', 'ModuleId', 'Estado', 'Porcentaje', 'FechaInicio',
+    'FechaFinalizacion', 'UltimaActividad'],
+
+  Preguntas: ['QuestionId', 'ModuleId', 'Tipo', 'Pregunta', 'Opciones', 'RespuestaCorrecta',
+    'Explicacion', 'Puntaje', 'Estado'],
+
+  IntentosExamen: ['AttemptId', 'CandidateId', 'ModuleId', 'Puntaje', 'Aprobado', 'Respuestas',
+    'FechaInicio', 'FechaFinalizacion', 'Duracion'],
+
+  Simulaciones: ['SimulationAttemptId', 'CandidateId', 'Escenario', 'Respuestas', 'Puntaje',
+    'Retroalimentacion', 'Fecha'],
+
+  TerminosAceptados: ['AcceptanceId', 'CandidateId', 'TipoDocumento', 'Version', 'FechaAceptacion',
+    'IP', 'UserAgent'],
+
+  Certificados: ['CertificateId', 'CandidateId', 'CodigoCertificado', 'FechaEmision',
+    'PuntajeFinal', 'Estado', 'UrlVerificacion'],
+
+  Vendedores: ['SellerId', 'CandidateId', 'CodigoVendedor', 'CodigoReferido', 'Nivel', 'Estado',
+    'FechaCertificacion', 'ClientesActivos', 'VentasTotales'],
+
+  Prospectos: ['ProspectId', 'SellerId', 'Empresa', 'Contacto', 'Email', 'WhatsApp', 'Pais',
+    'Sector', 'Fuente', 'Etapa', 'ValorEstimado', 'ProximaAccion', 'FechaSeguimiento', 'Notas',
+    'FechaCreacion', 'FechaActualizacion'],
+
+  ActividadesCRM: ['ActivityId', 'ProspectId', 'SellerId', 'Tipo', 'Descripcion', 'Fecha',
+    'ProximaAccion'],
+
+  Ventas: ['SaleId', 'SellerId', 'ProspectId', 'Cliente', 'Plan', 'Monto', 'TipoVenta',
+    'FechaVenta', 'Estado', 'Comprobante', 'FechaValidacion', 'ValidadoPor'],
+
+  Comisiones: ['CommissionId', 'SaleId', 'SellerId', 'Tipo', 'Porcentaje', 'Monto', 'Estado',
+    'FechaCreacion', 'FechaProgramada', 'FechaPago', 'MetodoPago'],
+
+  Renovaciones: ['RenewalId', 'SaleId', 'Cliente', 'Periodo', 'Monto', 'Estado', 'FechaPago',
+    'CommissionId'],
+
+  ChatbotLogs: ['ChatId', 'UserId', 'Mensaje', 'Intencion', 'Confianza', 'Respuesta', 'Fecha',
+    'Resuelto'],
+
+  PreguntasNoResueltas: ['UnresolvedId', 'UserId', 'Pregunta', 'Contexto', 'Fecha', 'Revisado',
+    'RespuestaAgregada'],
+
+  Auditoria: ['AuditId', 'UserId', 'Accion', 'Entidad', 'EntityId', 'DatosAnteriores',
+    'DatosNuevos', 'Fecha', 'IP'],
+
+  RecuperacionPassword: ['RecoveryId', 'UserId', 'TokenHash', 'FechaCreacion', 'FechaExpiracion',
+    'Utilizado']
+};
+
+/* ============================================================================================
+ * 2. MENÚ Y INICIALIZACIÓN
+ * ==========================================================================================*/
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('ARCA')
+    .addItem('1. Inicializar / reparar hojas', 'menuInicializar')
+    .addItem('2. Configurar secretos y admin', 'menuConfigurarSecretos')
+    .addItem('3. Cargar datos de prueba', 'menuCargarDatosPrueba')
+    .addToUi();
+}
+
+function menuInicializar() {
+  asegurarHojas();
+  asegurarConfigDefaults();
+  SpreadsheetApp.getUi().alert('Hojas y configuración inicial listas.');
+}
+
+/** Crea las hojas y encabezados que falten. Idempotente. */
+function asegurarHojas() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  Object.keys(SHEETS).forEach(function (nombre) {
+    var hoja = ss.getSheetByName(nombre);
+    if (!hoja) hoja = ss.insertSheet(nombre);
+    var headers = SHEETS[nombre];
+    var actuales = hoja.getRange(1, 1, 1, Math.max(headers.length, hoja.getLastColumn() || 1))
+      .getValues()[0];
+    var faltan = headers.some(function (h, i) { return actuales[i] !== h; });
+    if (faltan) {
+      hoja.getRange(1, 1, 1, headers.length).setValues([headers]);
+      hoja.getRange(1, 1, 1, headers.length).setFontWeight('bold')
+        .setBackground('#2b1f3a').setFontColor('#ffffff');
+      hoja.setFrozenRows(1);
+    }
+  });
+  // Guarda el ID de la hoja como propiedad para el backend.
+  PropertiesService.getScriptProperties()
+    .setProperty('SPREADSHEET_ID', ss.getId());
+}
+
+function asegurarConfigDefaults() {
+  Object.keys(CONFIG_DEFAULTS).forEach(function (clave) {
+    if (configGet(clave) === null) {
+      configSet(clave, CONFIG_DEFAULTS[clave][0], CONFIG_DEFAULTS[clave][1]);
+    }
+  });
+}
+
+function menuConfigurarSecretos() {
+  var ui = SpreadsheetApp.getUi();
+  var props = PropertiesService.getScriptProperties();
+
+  if (!props.getProperty('PEPPER')) {
+    props.setProperty('PEPPER', generarToken(32));
+  }
+
+  var email = ui.prompt('Admin inicial', 'Correo del administrador:', ui.ButtonSet.OK_CANCEL);
+  if (email.getSelectedButton() !== ui.Button.OK) return;
+  var pass = ui.prompt('Admin inicial', 'Contraseña del administrador:', ui.ButtonSet.OK_CANCEL);
+  if (pass.getSelectedButton() !== ui.Button.OK) return;
+
+  crearUsuario(email.getResponseText().trim(), pass.getResponseText(), 'admin', '', false);
+  ui.alert('Administrador creado. PEPPER generado y guardado.');
+}
+
+/* ============================================================================================
+ * 3. ENTRADA HTTP: doGet / doPost + ROUTER
+ * ==========================================================================================*/
+
+function doGet(e) {
+  // Health-check y verificación pública de certificados.
+  var accion = (e && e.parameter && e.parameter.action) || 'ping';
+  try {
+    if (accion === 'verificarCertificado') {
+      return respuesta(true, verificarCertificado(e.parameter.codigo || ''));
+    }
+    return respuesta(true, { servicio: 'Academia Comercial ARCA', estado: 'ok', version: '1.0' });
+  } catch (err) {
+    return respuesta(false, null, 'ERROR', err.message);
+  }
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+  } catch (errLock) {
+    return respuesta(false, null, 'BUSY', 'Servidor ocupado, reintenta.');
+  }
+
+  try {
+    var cuerpo = {};
+    if (e && e.postData && e.postData.contents) {
+      cuerpo = JSON.parse(e.postData.contents);
+    }
+    var accion = cuerpo.action;
+    var token = cuerpo.token || null;
+    var payload = cuerpo.payload || {};
+    var contexto = {
+      ip: (e && e.parameter && e.parameter.ip) || '',
+      userAgent: payload.__ua || ''
+    };
+    return router(accion, payload, token, contexto);
+  } catch (err) {
+    registrarError(err);
+    return respuesta(false, null, 'ERROR', 'Error del servidor: ' + err.message);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Enruta cada acción. Acciones con prefijo "admin" exigen rol admin. */
+function router(accion, payload, token, ctx) {
+  switch (accion) {
+    // --- Público ---
+    case 'ping': return respuesta(true, { estado: 'ok' });
+    case 'configPublica': return respuesta(true, configPublica());
+    case 'registrarCandidato': return accRegistrarCandidato(payload, ctx);
+    case 'login': return accLogin(payload, ctx);
+    case 'solicitarRecuperacion': return accSolicitarRecuperacion(payload, ctx);
+    case 'restablecerPassword': return accRestablecerPassword(payload, ctx);
+    case 'verificarCertificado': return respuesta(true, verificarCertificado(payload.codigo));
+
+    // --- Requieren sesión ---
+    case 'logout': return accLogout(token);
+    case 'sesionActual': return accSesionActual(token);
+    case 'cambiarPassword': return accCambiarPassword(payload, token);
+
+    // Academia (candidato)
+    case 'obtenerModulos': return conSesion(token, function (u) { return accObtenerModulos(u); });
+    case 'obtenerProgreso': return conSesion(token, function (u) { return accObtenerProgreso(u); });
+    case 'guardarProgreso': return conSesion(token, function (u) { return accGuardarProgreso(u, payload); });
+    case 'obtenerExamen': return conSesion(token, function (u) { return accObtenerExamen(u, payload); });
+    case 'enviarExamen': return conSesion(token, function (u) { return accEnviarExamen(u, payload); });
+    case 'enviarSimulacion': return conSesion(token, function (u) { return accEnviarSimulacion(u, payload); });
+    case 'aceptarTerminos': return conSesion(token, function (u) { return accAceptarTerminos(u, payload, ctx); });
+    case 'estadoCertificacion': return conSesion(token, function (u) { return accEstadoCertificacion(u); });
+    case 'certificar': return conSesion(token, function (u) { return accCertificar(u, ctx); });
+
+    // Vendedor
+    case 'dashboardVendedor': return conRol(token, 'vendedor', function (u) { return accDashboardVendedor(u); });
+    case 'listarProspectos': return conRol(token, 'vendedor', function (u) { return accListarProspectos(u); });
+    case 'crearProspecto': return conRol(token, 'vendedor', function (u) { return accCrearProspecto(u, payload); });
+    case 'actualizarProspecto': return conRol(token, 'vendedor', function (u) { return accActualizarProspecto(u, payload); });
+    case 'registrarActividad': return conRol(token, 'vendedor', function (u) { return accRegistrarActividad(u, payload); });
+    case 'listarVentas': return conRol(token, 'vendedor', function (u) { return accListarVentas(u); });
+    case 'registrarVenta': return conRol(token, 'vendedor', function (u) { return accRegistrarVenta(u, payload); });
+    case 'listarComisiones': return conRol(token, 'vendedor', function (u) { return accListarComisiones(u); });
+    case 'actualizarPerfil': return conSesion(token, function (u) { return accActualizarPerfil(u, payload); });
+
+    // Chatbot
+    case 'registrarChat': return accRegistrarChat(payload, token);
+    case 'registrarPreguntaNoResuelta': return accRegistrarPreguntaNoResuelta(payload, token);
+
+    // --- Admin ---
+    case 'adminListar': return conRol(token, 'admin', function () { return accAdminListar(payload); });
+    case 'adminCandidato': return conRol(token, 'admin', function (u) { return accAdminCandidato(u, payload); });
+    case 'adminActualizarVenta': return conRol(token, 'admin', function (u) { return accAdminActualizarVenta(u, payload); });
+    case 'adminCalcularComision': return conRol(token, 'admin', function (u) { return accAdminCalcularComision(u, payload); });
+    case 'adminMarcarComisionPagada': return conRol(token, 'admin', function (u) { return accAdminMarcarComisionPagada(u, payload); });
+    case 'adminRegistrarRenovacion': return conRol(token, 'admin', function (u) { return accAdminRegistrarRenovacion(u, payload); });
+    case 'adminGestionarVendedor': return conRol(token, 'admin', function (u) { return accAdminGestionarVendedor(u, payload); });
+    case 'adminResetPassword': return conRol(token, 'admin', function (u) { return accAdminResetPassword(u, payload); });
+    case 'adminConfigSet': return conRol(token, 'admin', function (u) { return accAdminConfigSet(u, payload); });
+    case 'adminGuardarModulo': return conRol(token, 'admin', function (u) { return accAdminGuardarModulo(u, payload); });
+    case 'adminGuardarPregunta': return conRol(token, 'admin', function (u) { return accAdminGuardarPregunta(u, payload); });
+    case 'adminResolverPregunta': return conRol(token, 'admin', function (u) { return accAdminResolverPregunta(u, payload); });
+
+    default:
+      return respuesta(false, null, 'ACCION_DESCONOCIDA', 'Acción no reconocida: ' + accion);
+  }
+}
+
+/* ============================================================================================
+ * 4. HELPERS DE RESPUESTA, SESIÓN Y ROLES
+ * ==========================================================================================*/
+
+function respuesta(ok, data, code, error) {
+  var payload = ok ? { ok: true, data: data } : { ok: false, error: error || 'Error', code: code || 'ERROR' };
+  return ContentService.createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/** Ejecuta fn(usuario) solo si hay sesión válida. */
+function conSesion(token, fn) {
+  var u = verificarSesion(token);
+  if (!u) return respuesta(false, null, 'NO_AUTORIZADO', 'Sesión inválida o expirada.');
+  return fn(u);
+}
+
+/** Ejecuta fn(usuario) solo si la sesión es válida y el rol coincide (admin siempre pasa). */
+function conRol(token, rol, fn) {
+  var u = verificarSesion(token);
+  if (!u) return respuesta(false, null, 'NO_AUTORIZADO', 'Sesión inválida o expirada.');
+  if (u.Rol !== rol && u.Rol !== 'admin') {
+    return respuesta(false, null, 'PROHIBIDO', 'No tienes permiso para esta acción.');
+  }
+  return fn(u);
+}
+
+/** Verifica un token de sesión; devuelve el objeto usuario o null. */
+function verificarSesion(token) {
+  if (!token) return null;
+  var hash = hashToken(token);
+  var sesiones = leerTabla('Sesiones');
+  var ahora = Date.now();
+  for (var i = 0; i < sesiones.length; i++) {
+    var s = sesiones[i];
+    if (s.TokenHash === hash && s.Estado === 'activa') {
+      if (new Date(s.FechaExpiracion).getTime() < ahora) {
+        actualizarFila('Sesiones', 'SessionId', s.SessionId, { Estado: 'expirada' });
+        return null;
+      }
+      var u = buscarFila('Usuarios', 'UserId', s.UserId);
+      if (u && u.Estado === 'activo') {
+        u.__sessionId = s.SessionId;
+        return u;
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
+/* ============================================================================================
+ * 5. SEGURIDAD: HASH, TOKENS, SANITIZACIÓN
+ * ==========================================================================================*/
+
+function bytesAHex(bytes) {
+  var s = '';
+  for (var i = 0; i < bytes.length; i++) {
+    var b = (bytes[i] + 256) % 256;
+    s += (b < 16 ? '0' : '') + b.toString(16);
+  }
+  return s;
+}
+
+function sha256(texto) {
+  return bytesAHex(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, texto, Utilities.Charset.UTF_8));
+}
+
+function getPepper() {
+  return PropertiesService.getScriptProperties().getProperty('PEPPER') || 'arca-pepper-fallback';
+}
+
+/** Hash de contraseña: SHA-256 iterado sobre (pepper + salt + password). */
+function hashPassword(password, salt) {
+  var pepper = getPepper();
+  var h = sha256(pepper + salt + password);
+  for (var i = 0; i < HASH_ITERACIONES; i++) {
+    h = sha256(h + salt);
+  }
+  return h;
+}
+
+function hashToken(token) {
+  return sha256(getPepper() + token);
+}
+
+function generarSalt() {
+  return generarToken(16);
+}
+
+/** Token aleatorio hex de n bytes. */
+function generarToken(n) {
+  var bytes = [];
+  for (var i = 0; i < n; i++) bytes.push(Math.floor(Math.random() * 256));
+  // Mezcla con un UUID para más entropía.
+  return bytesAHex(bytes) + Utilities.getUuid().replace(/-/g, '');
+}
+
+/** Contraseña temporal legible pero fuerte. */
+function generarPasswordTemporal() {
+  var mayus = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  var minus = 'abcdefghijkmnpqrstuvwxyz';
+  var nums = '23456789';
+  var simb = '!@#$%&*';
+  function pick(s) { return s.charAt(Math.floor(Math.random() * s.length)); }
+  var base = pick(mayus) + pick(minus) + pick(nums) + pick(simb);
+  for (var i = 0; i < 6; i++) base += pick(mayus + minus + nums);
+  return base.split('').sort(function () { return Math.random() - 0.5; }).join('');
+}
+
+/** Evita inyección de fórmulas y limpia strings. */
+function sanitizar(valor) {
+  if (valor === null || valor === undefined) return '';
+  var s = String(valor);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // neutraliza fórmulas
+  return s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
+}
+
+function idUnico(prefijo) {
+  return prefijo + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+/* ============================================================================================
+ * 6. CAPA DE DATOS GENÉRICA (por nombre de columna)
+ * ==========================================================================================*/
+
+function getSheet(nombre) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var hoja = ss.getSheetByName(nombre);
+  if (!hoja) { asegurarHojas(); hoja = ss.getSheetByName(nombre); }
+  return hoja;
+}
+
+/** Lee toda la tabla como array de objetos {columna: valor}. */
+function leerTabla(nombre) {
+  var hoja = getSheet(nombre);
+  var ultimaFila = hoja.getLastRow();
+  if (ultimaFila < 2) return [];
+  var headers = SHEETS[nombre];
+  var valores = hoja.getRange(2, 1, ultimaFila - 1, headers.length).getValues();
+  return valores.map(function (fila, idx) {
+    var obj = { __row: idx + 2 };
+    headers.forEach(function (h, i) { obj[h] = fila[i]; });
+    return obj;
+  });
+}
+
+/** Devuelve la primera fila cuyo columna == valor, o null. */
+function buscarFila(nombre, columna, valor) {
+  var filas = leerTabla(nombre);
+  for (var i = 0; i < filas.length; i++) {
+    if (String(filas[i][columna]) === String(valor)) return filas[i];
+  }
+  return null;
+}
+
+function filtrarFilas(nombre, columna, valor) {
+  return leerTabla(nombre).filter(function (f) { return String(f[columna]) === String(valor); });
+}
+
+/** Inserta una fila a partir de un objeto {columna: valor}. */
+function insertarFila(nombre, obj) {
+  var hoja = getSheet(nombre);
+  var headers = SHEETS[nombre];
+  var fila = headers.map(function (h) {
+    return obj[h] === undefined ? '' : (typeof obj[h] === 'string' ? sanitizar(obj[h]) : obj[h]);
+  });
+  hoja.appendRow(fila);
+  return obj;
+}
+
+/** Actualiza la fila identificada por columna==valor con los campos de cambios. */
+function actualizarFila(nombre, columna, valor, cambios) {
+  var hoja = getSheet(nombre);
+  var fila = buscarFila(nombre, columna, valor);
+  if (!fila) return false;
+  var headers = SHEETS[nombre];
+  headers.forEach(function (h, i) {
+    if (cambios.hasOwnProperty(h)) {
+      var v = typeof cambios[h] === 'string' ? sanitizar(cambios[h]) : cambios[h];
+      hoja.getRange(fila.__row, i + 1).setValue(v);
+    }
+  });
+  return true;
+}
+
+/* ============================================================================================
+ * 7. CONFIGURACIÓN (hoja Configuracion)
+ * ==========================================================================================*/
+
+function configGet(clave) {
+  var f = buscarFila('Configuracion', 'Clave', clave);
+  return f ? String(f.Valor) : null;
+}
+function configNum(clave, defecto) {
+  var v = configGet(clave);
+  return v === null ? defecto : parseFloat(v);
+}
+function configSet(clave, valor, descripcion) {
+  var existe = buscarFila('Configuracion', 'Clave', clave);
+  if (existe) {
+    actualizarFila('Configuracion', 'Clave', clave, { Valor: valor, FechaActualizacion: new Date() });
+  } else {
+    insertarFila('Configuracion', {
+      Clave: clave, Valor: valor, Descripcion: descripcion || '', FechaActualizacion: new Date()
+    });
+  }
+}
+function configPublica() {
+  return {
+    comision_primera_venta: configNum('comision_primera_venta', 0.15),
+    comision_renovacion: configNum('comision_renovacion', 0.05),
+    puntaje_minimo: configNum('puntaje_minimo', 85),
+    intentos_por_examen: configNum('intentos_por_examen', 3),
+    intentos_examen_final: configNum('intentos_examen_final', 2),
+    version_terminos: configGet('version_terminos') || '2026.08',
+    moneda: configGet('moneda') || 'USD',
+    whatsapp_soporte: configGet('whatsapp_soporte') || ''
+  };
+}
+
+/* ============================================================================================
+ * 8. AUDITORÍA Y ERRORES
+ * ==========================================================================================*/
+
+function auditar(userId, accion, entidad, entityId, antes, despues, ip) {
+  insertarFila('Auditoria', {
+    AuditId: idUnico('aud'), UserId: userId || '', Accion: accion, Entidad: entidad || '',
+    EntityId: entityId || '', DatosAnteriores: antes ? JSON.stringify(antes) : '',
+    DatosNuevos: despues ? JSON.stringify(despues) : '', Fecha: new Date(), IP: ip || ''
+  });
+}
+
+function registrarError(err) {
+  try {
+    auditar('', 'error', 'sistema', '', null, { mensaje: err.message, stack: err.stack }, '');
+  } catch (e) { /* noop */ }
+}
+
+/* ============================================================================================
+ * 9. USUARIOS Y AUTENTICACIÓN
+ * ==========================================================================================*/
+
+function crearUsuario(email, password, rol, candidateId, debeCambiar) {
+  email = String(email).toLowerCase().trim();
+  if (buscarFila('Usuarios', 'Email', email)) {
+    throw new Error('El correo ya está registrado.');
+  }
+  var salt = generarSalt();
+  var user = {
+    UserId: idUnico('usr'), CandidateId: candidateId || '', Email: email,
+    PasswordHash: hashPassword(password, salt), Salt: salt, Rol: rol || 'candidato',
+    Estado: 'activo', DebeCambiarPassword: debeCambiar ? 'true' : 'false',
+    UltimoAcceso: '', IntentosFallidos: 0, BloqueadoHasta: '', FechaCreacion: new Date()
+  };
+  insertarFila('Usuarios', user);
+  return user;
+}
+
+function accLogin(payload, ctx) {
+  var email = String(payload.email || '').toLowerCase().trim();
+  var password = String(payload.password || '');
+  if (!email || !password) return respuesta(false, null, 'DATOS', 'Correo y contraseña son obligatorios.');
+
+  var u = buscarFila('Usuarios', 'Email', email);
+  if (!u) return respuesta(false, null, 'CREDENCIALES', 'Correo o contraseña incorrectos.');
+
+  if (u.BloqueadoHasta && new Date(u.BloqueadoHasta).getTime() > Date.now()) {
+    return respuesta(false, null, 'BLOQUEADO', 'Cuenta bloqueada temporalmente. Intenta más tarde.');
+  }
+  if (u.Estado !== 'activo') {
+    return respuesta(false, null, 'INACTIVO', 'Tu cuenta no está activa. Contacta a soporte.');
+  }
+
+  var hash = hashPassword(password, u.Salt);
+  if (hash !== u.PasswordHash) {
+    var intentos = Number(u.IntentosFallidos || 0) + 1;
+    var cambios = { IntentosFallidos: intentos };
+    if (intentos >= MAX_INTENTOS_LOGIN) {
+      cambios.BloqueadoHasta = new Date(Date.now() + BLOQUEO_MS);
+      cambios.IntentosFallidos = 0;
+    }
+    actualizarFila('Usuarios', 'UserId', u.UserId, cambios);
+    auditar(u.UserId, 'login_fallido', 'usuario', u.UserId, null, null, ctx.ip);
+    return respuesta(false, null, 'CREDENCIALES', 'Correo o contraseña incorrectos.');
+  }
+
+  actualizarFila('Usuarios', 'UserId', u.UserId, { IntentosFallidos: 0, BloqueadoHasta: '', UltimoAcceso: new Date() });
+  var token = crearSesion(u.UserId, ctx);
+  auditar(u.UserId, 'login', 'usuario', u.UserId, null, null, ctx.ip);
+
+  return respuesta(true, {
+    token: token,
+    usuario: usuarioPublico(u),
+    debeCambiarPassword: String(u.DebeCambiarPassword) === 'true'
+  });
+}
+
+function crearSesion(userId, ctx) {
+  var token = generarToken(24);
+  insertarFila('Sesiones', {
+    SessionId: idUnico('ses'), UserId: userId, TokenHash: hashToken(token),
+    FechaCreacion: new Date(), FechaExpiracion: new Date(Date.now() + SESION_DURACION_MS),
+    Estado: 'activa', IP: (ctx && ctx.ip) || '', UserAgent: (ctx && ctx.userAgent) || ''
+  });
+  return token;
+}
+
+function usuarioPublico(u) {
+  return {
+    userId: u.UserId, candidateId: u.CandidateId, email: u.Email, rol: u.Rol,
+    debeCambiarPassword: String(u.DebeCambiarPassword) === 'true'
+  };
+}
+
+function accLogout(token) {
+  var u = verificarSesion(token);
+  if (u && u.__sessionId) {
+    actualizarFila('Sesiones', 'SessionId', u.__sessionId, { Estado: 'cerrada' });
+  }
+  return respuesta(true, { cerrada: true });
+}
+
+function accSesionActual(token) {
+  var u = verificarSesion(token);
+  if (!u) return respuesta(false, null, 'NO_AUTORIZADO', 'Sesión inválida.');
+  var extra = {};
+  if (u.Rol === 'vendedor') {
+    var v = buscarFila('Vendedores', 'CandidateId', u.CandidateId);
+    if (v) extra.vendedor = { codigoVendedor: v.CodigoVendedor, codigoReferido: v.CodigoReferido, nivel: v.Nivel };
+  }
+  return respuesta(true, { usuario: usuarioPublico(u), extra: extra });
+}
+
+function accCambiarPassword(payload, token) {
+  var u = verificarSesion(token);
+  if (!u) return respuesta(false, null, 'NO_AUTORIZADO', 'Sesión inválida.');
+  var actual = String(payload.actual || '');
+  var nueva = String(payload.nueva || '');
+  if (nueva.length < 8) return respuesta(false, null, 'DEBIL', 'La nueva contraseña debe tener al menos 8 caracteres.');
+
+  // Si NO debe cambiar obligatoriamente, exige la contraseña actual.
+  if (String(u.DebeCambiarPassword) !== 'true') {
+    if (hashPassword(actual, u.Salt) !== u.PasswordHash) {
+      return respuesta(false, null, 'CREDENCIALES', 'La contraseña actual es incorrecta.');
+    }
+  }
+  var salt = generarSalt();
+  actualizarFila('Usuarios', 'UserId', u.UserId, {
+    PasswordHash: hashPassword(nueva, salt), Salt: salt, DebeCambiarPassword: 'false'
+  });
+  auditar(u.UserId, 'cambio_password', 'usuario', u.UserId, null, null, '');
+  return respuesta(true, { actualizada: true });
+}
+
+function accSolicitarRecuperacion(payload, ctx) {
+  var email = String(payload.email || '').toLowerCase().trim();
+  var u = buscarFila('Usuarios', 'Email', email);
+  // Respuesta uniforme para no revelar si el correo existe.
+  if (u) {
+    var token = generarToken(20);
+    insertarFila('RecuperacionPassword', {
+      RecoveryId: idUnico('rec'), UserId: u.UserId, TokenHash: hashToken(token),
+      FechaCreacion: new Date(), FechaExpiracion: new Date(Date.now() + RECUPERACION_DURACION_MS),
+      Utilizado: 'false'
+    });
+    enviarEmailRecuperacion(u.Email, token);
+    auditar(u.UserId, 'solicitud_recuperacion', 'usuario', u.UserId, null, null, ctx.ip);
+  }
+  return respuesta(true, { enviado: true });
+}
+
+function accRestablecerPassword(payload, ctx) {
+  var token = String(payload.token || '');
+  var nueva = String(payload.nueva || '');
+  if (nueva.length < 8) return respuesta(false, null, 'DEBIL', 'La contraseña debe tener al menos 8 caracteres.');
+  var hash = hashToken(token);
+  var rec = buscarFila('RecuperacionPassword', 'TokenHash', hash);
+  if (!rec || String(rec.Utilizado) === 'true' || new Date(rec.FechaExpiracion).getTime() < Date.now()) {
+    return respuesta(false, null, 'TOKEN_INVALIDO', 'El enlace es inválido o expiró.');
+  }
+  var u = buscarFila('Usuarios', 'UserId', rec.UserId);
+  if (!u) return respuesta(false, null, 'TOKEN_INVALIDO', 'Usuario no encontrado.');
+  var salt = generarSalt();
+  actualizarFila('Usuarios', 'UserId', u.UserId, {
+    PasswordHash: hashPassword(nueva, salt), Salt: salt, DebeCambiarPassword: 'false',
+    IntentosFallidos: 0, BloqueadoHasta: ''
+  });
+  actualizarFila('RecuperacionPassword', 'RecoveryId', rec.RecoveryId, { Utilizado: 'true' });
+  auditar(u.UserId, 'reset_password', 'usuario', u.UserId, null, null, ctx.ip);
+  return respuesta(true, { restablecida: true });
+}
+
+function enviarEmailRecuperacion(email, token) {
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: 'Recuperación de acceso — Academia Comercial ARCA',
+      htmlBody: 'Usa este código para restablecer tu contraseña (válido 30 minutos):<br><br>' +
+        '<b style="font-size:18px">' + token + '</b><br><br>' +
+        'Si no solicitaste esto, ignora este correo.'
+    });
+  } catch (e) { /* cuota de correo agotada u otro; se ignora */ }
+}
+
+function enviarEmailCredenciales(email, passwordTemporal, codigoVendedor) {
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: '¡Certificación aprobada! Tus credenciales — Academia Comercial ARCA',
+      htmlBody: '¡Felicidades! Fuiste certificado como asesor comercial de ARCA.<br><br>' +
+        'Usuario: <b>' + email + '</b><br>' +
+        'Contraseña temporal: <b>' + passwordTemporal + '</b><br>' +
+        'Código de vendedor: <b>' + codigoVendedor + '</b><br><br>' +
+        'Al ingresar por primera vez deberás cambiar tu contraseña.'
+    });
+  } catch (e) { /* se ignora si falla el correo */ }
+}
+
+/* ============================================================================================
+ * 10. REGISTRO DE CANDIDATOS
+ * ==========================================================================================*/
+
+function accRegistrarCandidato(payload, ctx) {
+  var email = String(payload.email || '').toLowerCase().trim();
+  var whatsapp = String(payload.whatsapp || '').replace(/[^\d+]/g, '');
+
+  if (!payload.nombreCompleto || !email || !whatsapp) {
+    return respuesta(false, null, 'DATOS', 'Nombre, correo y WhatsApp son obligatorios.');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return respuesta(false, null, 'EMAIL', 'El formato del correo no es válido.');
+  }
+  if (buscarFila('Candidatos', 'Email', email) || buscarFila('Usuarios', 'Email', email)) {
+    return respuesta(false, null, 'DUPLICADO', 'Este correo ya está registrado.');
+  }
+  if (buscarFila('Candidatos', 'WhatsApp', whatsapp)) {
+    return respuesta(false, null, 'DUPLICADO', 'Este WhatsApp ya está registrado.');
+  }
+  if (!payload.consentimientoDatos || !payload.confirmaVeracidad) {
+    return respuesta(false, null, 'CONSENTIMIENTO', 'Debes aceptar los consentimientos iniciales.');
+  }
+  // Edad mínima
+  if (payload.fechaNacimiento) {
+    var edad = edadDesde(payload.fechaNacimiento);
+    if (edad < 18) return respuesta(false, null, 'EDAD', 'Debes ser mayor de edad para participar.');
+  }
+
+  var candidateId = idUnico('cand');
+  insertarFila('Candidatos', {
+    CandidateId: candidateId, NombreCompleto: payload.nombreCompleto, Pais: payload.pais || '',
+    Ciudad: payload.ciudad || '', FechaNacimiento: payload.fechaNacimiento || '', Email: email,
+    WhatsApp: whatsapp, Documento: payload.documento || '', ZonaHoraria: payload.zonaHoraria || '',
+    Idioma: payload.idioma || 'es', FuenteConocio: payload.fuenteConocio || '',
+    Experiencia: payload.experiencia || '', ExperienciaSoftware: payload.experienciaSoftware || '',
+    Sectores: payload.sectores || '', Disponibilidad: payload.disponibilidad || '',
+    MedioContacto: payload.medioContacto || '', Motivacion: payload.motivacion || '',
+    Estado: 'en_capacitacion', FechaRegistro: new Date(), UltimaActividad: new Date(),
+    Progreso: 0, Certificado: 'false'
+  });
+
+  // Crea el usuario candidato (correo personal como acceso, contraseña que eligió).
+  if (!payload.password || String(payload.password).length < 8) {
+    return respuesta(false, null, 'DEBIL', 'La contraseña debe tener al menos 8 caracteres.');
+  }
+  crearUsuario(email, payload.password, 'candidato', candidateId, false);
+
+  var token = crearSesion(buscarFila('Usuarios', 'Email', email).UserId, ctx);
+  auditar('', 'registro_candidato', 'candidato', candidateId, null, { email: email }, ctx.ip);
+
+  return respuesta(true, { candidateId: candidateId, token: token, email: email });
+}
+
+function edadDesde(fecha) {
+  var nac = new Date(fecha);
+  if (isNaN(nac.getTime())) return 99;
+  var hoy = new Date();
+  var edad = hoy.getFullYear() - nac.getFullYear();
+  var m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad;
+}
+
+/* ============================================================================================
+ * 11. ACADEMIA: MÓDULOS, PROGRESO, EXÁMENES, SIMULACIONES
+ * ==========================================================================================*/
+
+function accObtenerModulos(u) {
+  var modulos = leerTabla('Modulos')
+    .filter(function (m) { return String(m.Estado) === 'activo' || m.Estado === ''; })
+    .sort(function (a, b) { return Number(a.Orden) - Number(b.Orden); });
+  return respuesta(true, modulos);
+}
+
+function accObtenerProgreso(u) {
+  var progreso = filtrarFilas('Progreso', 'CandidateId', u.CandidateId);
+  var intentos = filtrarFilas('IntentosExamen', 'CandidateId', u.CandidateId);
+  return respuesta(true, { progreso: progreso, intentos: intentos });
+}
+
+function accGuardarProgreso(u, payload) {
+  var moduleId = String(payload.moduleId || '');
+  if (!moduleId) return respuesta(false, null, 'DATOS', 'moduleId es obligatorio.');
+  var porcentaje = Math.max(0, Math.min(100, Number(payload.porcentaje || 0)));
+  var estado = payload.estado || (porcentaje >= 100 ? 'completado' : 'en_progreso');
+
+  var existente = null;
+  var progreso = filtrarFilas('Progreso', 'CandidateId', u.CandidateId);
+  for (var i = 0; i < progreso.length; i++) {
+    if (String(progreso[i].ModuleId) === moduleId) { existente = progreso[i]; break; }
+  }
+  if (existente) {
+    actualizarFila('Progreso', 'ProgressId', existente.ProgressId, {
+      Estado: estado, Porcentaje: porcentaje, UltimaActividad: new Date(),
+      FechaFinalizacion: estado === 'completado' ? new Date() : existente.FechaFinalizacion
+    });
+  } else {
+    insertarFila('Progreso', {
+      ProgressId: idUnico('prg'), CandidateId: u.CandidateId, ModuleId: moduleId, Estado: estado,
+      Porcentaje: porcentaje, FechaInicio: new Date(),
+      FechaFinalizacion: estado === 'completado' ? new Date() : '', UltimaActividad: new Date()
+    });
+  }
+  actualizarProgresoGlobal(u.CandidateId);
+  return respuesta(true, { guardado: true });
+}
+
+function actualizarProgresoGlobal(candidateId) {
+  var modulos = leerTabla('Modulos').filter(function (m) { return String(m.Obligatorio) === 'true'; });
+  var progreso = filtrarFilas('Progreso', 'CandidateId', candidateId);
+  var completados = 0;
+  modulos.forEach(function (m) {
+    for (var i = 0; i < progreso.length; i++) {
+      if (String(progreso[i].ModuleId) === String(m.ModuleId) && String(progreso[i].Estado) === 'completado') {
+        completados++; break;
+      }
+    }
+  });
+  var pct = modulos.length ? Math.round((completados / modulos.length) * 100) : 0;
+  actualizarFila('Candidatos', 'CandidateId', candidateId, { Progreso: pct, UltimaActividad: new Date() });
+}
+
+/** Devuelve las preguntas de un módulo SIN la respuesta correcta (anti-trampa). */
+function accObtenerExamen(u, payload) {
+  var moduleId = String(payload.moduleId || '');
+  var preguntas = filtrarFilas('Preguntas', 'ModuleId', moduleId)
+    .filter(function (p) { return String(p.Estado) === 'activo' || p.Estado === ''; })
+    .map(function (p) {
+      return {
+        QuestionId: p.QuestionId, Tipo: p.Tipo, Pregunta: p.Pregunta,
+        Opciones: p.Opciones, Puntaje: p.Puntaje
+      };
+    });
+  // Mezcla y limita si se solicita un tamaño.
+  preguntas = mezclar(preguntas);
+  if (payload.cantidad) preguntas = preguntas.slice(0, Number(payload.cantidad));
+  var intentosPrevios = filtrarFilas('IntentosExamen', 'CandidateId', u.CandidateId)
+    .filter(function (a) { return String(a.ModuleId) === moduleId; }).length;
+  var maxIntentos = configNum('intentos_por_examen', 3);
+  if (String(moduleId) === 'final') maxIntentos = configNum('intentos_examen_final', 2);
+  if (intentosPrevios >= maxIntentos) {
+    return respuesta(false, null, 'SIN_INTENTOS', 'Alcanzaste el máximo de intentos para este examen.');
+  }
+  return respuesta(true, { preguntas: preguntas, intentosRestantes: maxIntentos - intentosPrevios });
+}
+
+/** Califica el examen en el backend (nunca en el frontend). */
+function accEnviarExamen(u, payload) {
+  var moduleId = String(payload.moduleId || '');
+  var respuestas = payload.respuestas || {}; // { QuestionId: valor }
+  var duracion = Number(payload.duracion || 0);
+
+  var maxIntentos = String(moduleId) === 'final' ? configNum('intentos_examen_final', 2) : configNum('intentos_por_examen', 3);
+  var intentosPrevios = filtrarFilas('IntentosExamen', 'CandidateId', u.CandidateId)
+    .filter(function (a) { return String(a.ModuleId) === moduleId; }).length;
+  if (intentosPrevios >= maxIntentos) {
+    return respuesta(false, null, 'SIN_INTENTOS', 'Sin intentos disponibles.');
+  }
+
+  var banco = filtrarFilas('Preguntas', 'ModuleId', moduleId);
+  var totalPuntos = 0, obtenidos = 0, detalle = [];
+  banco.forEach(function (p) {
+    if (respuestas[p.QuestionId] === undefined) return; // no incluida en este intento
+    var puntos = Number(p.Puntaje || 1);
+    totalPuntos += puntos;
+    var correcta = calificarRespuesta(p, respuestas[p.QuestionId]);
+    if (correcta) obtenidos += puntos;
+    detalle.push({ QuestionId: p.QuestionId, correcta: correcta, explicacion: p.Explicacion });
+  });
+
+  var puntaje = totalPuntos ? Math.round((obtenidos / totalPuntos) * 100) : 0;
+  var minimo = String(moduleId) === 'final'
+    ? configNum('puntaje_minimo', 85)
+    : Number((buscarFila('Modulos', 'ModuleId', moduleId) || {}).PuntajeMinimo || configNum('puntaje_minimo', 85));
+  var aprobado = puntaje >= minimo;
+
+  insertarFila('IntentosExamen', {
+    AttemptId: idUnico('att'), CandidateId: u.CandidateId, ModuleId: moduleId, Puntaje: puntaje,
+    Aprobado: aprobado ? 'true' : 'false', Respuestas: JSON.stringify(respuestas),
+    FechaInicio: payload.fechaInicio || '', FechaFinalizacion: new Date(), Duracion: duracion
+  });
+
+  if (aprobado && moduleId !== 'final') {
+    accGuardarProgreso(u, { moduleId: moduleId, porcentaje: 100, estado: 'completado' });
+  }
+
+  return respuesta(true, {
+    puntaje: puntaje, aprobado: aprobado, minimo: minimo, detalle: detalle,
+    intentosRestantes: maxIntentos - (intentosPrevios + 1)
+  });
+}
+
+function calificarRespuesta(pregunta, respuesta) {
+  var tipo = String(pregunta.Tipo || 'opcion');
+  var correcta = String(pregunta.RespuestaCorrecta || '').trim();
+  if (tipo === 'abierta') {
+    // Coincidencia por palabras clave (correcta = lista separada por ;)
+    var claves = correcta.toLowerCase().split(';').map(function (s) { return s.trim(); }).filter(Boolean);
+    var texto = String(respuesta || '').toLowerCase();
+    var aciertos = claves.filter(function (c) { return texto.indexOf(c) >= 0; }).length;
+    return claves.length > 0 && aciertos >= Math.ceil(claves.length / 2);
+  }
+  return String(respuesta).trim().toLowerCase() === correcta.toLowerCase();
+}
+
+function mezclar(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function accEnviarSimulacion(u, payload) {
+  var escenario = String(payload.escenario || '');
+  var puntaje = Math.max(0, Math.min(100, Number(payload.puntaje || 0)));
+  insertarFila('Simulaciones', {
+    SimulationAttemptId: idUnico('sim'), CandidateId: u.CandidateId, Escenario: escenario,
+    Respuestas: JSON.stringify(payload.respuestas || []), Puntaje: puntaje,
+    Retroalimentacion: payload.retroalimentacion || '', Fecha: new Date()
+  });
+  return respuesta(true, { guardado: true });
+}
+
+function accAceptarTerminos(u, payload, ctx) {
+  var docs = payload.documentos || []; // ['terminos','comisiones','privacidad','conducta','prospectos']
+  var version = configGet('version_terminos') || '2026.08';
+  docs.forEach(function (doc) {
+    insertarFila('TerminosAceptados', {
+      AcceptanceId: idUnico('term'), CandidateId: u.CandidateId, TipoDocumento: doc,
+      Version: version, FechaAceptacion: new Date(), IP: ctx.ip || '', UserAgent: ctx.userAgent || ''
+    });
+  });
+  auditar(u.UserId, 'aceptar_terminos', 'candidato', u.CandidateId, null, { documentos: docs, version: version }, ctx.ip);
+  return respuesta(true, { aceptados: docs, version: version });
+}
+
+/* ============================================================================================
+ * 12. CERTIFICACIÓN Y CREACIÓN DEL VENDEDOR
+ * ==========================================================================================*/
+
+function evaluarRequisitos(candidateId) {
+  var modulos = leerTabla('Modulos').filter(function (m) { return String(m.Obligatorio) === 'true'; });
+  var progreso = filtrarFilas('Progreso', 'CandidateId', candidateId);
+  var intentos = filtrarFilas('IntentosExamen', 'CandidateId', candidateId);
+  var terminos = filtrarFilas('TerminosAceptados', 'CandidateId', candidateId);
+  var simulaciones = filtrarFilas('Simulaciones', 'CandidateId', candidateId);
+
+  function moduloCompleto(id) {
+    return progreso.some(function (p) { return String(p.ModuleId) === String(id) && String(p.Estado) === 'completado'; });
+  }
+  function examenAprobado(id) {
+    return intentos.some(function (a) { return String(a.ModuleId) === String(id) && String(a.Aprobado) === 'true'; });
+  }
+
+  var modulosCompletos = modulos.length > 0 && modulos.every(function (m) { return moduloCompleto(m.ModuleId); });
+  var examenesAprobados = modulos.length > 0 && modulos.every(function (m) { return examenAprobado(m.ModuleId); });
+  var examenFinal = examenAprobado('final');
+  var docsRequeridos = ['terminos', 'comisiones', 'privacidad', 'conducta'];
+  var terminosOk = docsRequeridos.every(function (d) {
+    return terminos.some(function (t) { return String(t.TipoDocumento) === d; });
+  });
+  var simulacionesOk = simulaciones.length >= 3;
+
+  var mejorFinal = 0;
+  intentos.forEach(function (a) {
+    if (String(a.ModuleId) === 'final') mejorFinal = Math.max(mejorFinal, Number(a.Puntaje || 0));
+  });
+  var puntajeMinimo = configNum('puntaje_minimo', 85);
+
+  var requisitos = {
+    modulosCompletos: modulosCompletos,
+    examenesAprobados: examenesAprobados,
+    examenFinalAprobado: examenFinal,
+    terminosAceptados: terminosOk,
+    simulacionesCompletas: simulacionesOk,
+    puntajeFinal: mejorFinal,
+    puntajeMinimo: puntajeMinimo,
+    puntajeSuficiente: mejorFinal >= puntajeMinimo
+  };
+  requisitos.cumpleTodo = modulosCompletos && examenesAprobados && examenFinal &&
+    terminosOk && simulacionesOk && requisitos.puntajeSuficiente;
+  return requisitos;
+}
+
+function accEstadoCertificacion(u) {
+  return respuesta(true, evaluarRequisitos(u.CandidateId));
+}
+
+function accCertificar(u, ctx) {
+  var candidateId = u.CandidateId;
+  var req = evaluarRequisitos(candidateId);
+  if (!req.cumpleTodo) {
+    return respuesta(false, req, 'REQUISITOS', 'Aún no cumples todos los requisitos de certificación.');
+  }
+  // Idempotencia: si ya es vendedor, no recrear.
+  if (buscarFila('Vendedores', 'CandidateId', candidateId)) {
+    return respuesta(false, null, 'YA_CERTIFICADO', 'Ya estás certificado.');
+  }
+
+  var cand = buscarFila('Candidatos', 'CandidateId', candidateId);
+  var codigoVendedor = generarCodigoVendedor();
+  var codigoReferido = codigoVendedor + '-REF';
+  var codigoCert = 'ARCA-' + new Date().getFullYear() + '-' + codigoVendedor;
+
+  insertarFila('Certificados', {
+    CertificateId: idUnico('cert'), CandidateId: candidateId, CodigoCertificado: codigoCert,
+    FechaEmision: new Date(), PuntajeFinal: req.puntajeFinal, Estado: 'vigente',
+    UrlVerificacion: '?action=verificarCertificado&codigo=' + encodeURIComponent(codigoCert)
+  });
+
+  insertarFila('Vendedores', {
+    SellerId: idUnico('sell'), CandidateId: candidateId, CodigoVendedor: codigoVendedor,
+    CodigoReferido: codigoReferido, Nivel: 'inicial', Estado: 'activo',
+    FechaCertificacion: new Date(), ClientesActivos: 0, VentasTotales: 0
+  });
+
+  // Contraseña temporal + cambio de rol a vendedor. El correo personal es el usuario.
+  var passwordTemporal = generarPasswordTemporal();
+  var salt = generarSalt();
+  actualizarFila('Usuarios', 'UserId', u.UserId, {
+    Rol: 'vendedor', PasswordHash: hashPassword(passwordTemporal, salt), Salt: salt,
+    DebeCambiarPassword: 'true'
+  });
+  actualizarFila('Candidatos', 'CandidateId', candidateId, { Estado: 'certificado', Certificado: 'true' });
+
+  enviarEmailCredenciales(u.Email, passwordTemporal, codigoVendedor);
+  auditar(u.UserId, 'certificacion', 'vendedor', codigoVendedor, null,
+    { codigoCertificado: codigoCert, puntaje: req.puntajeFinal }, ctx.ip);
+
+  // La contraseña temporal se devuelve UNA sola vez (no se vuelve a mostrar).
+  return respuesta(true, {
+    codigoVendedor: codigoVendedor, codigoReferido: codigoReferido,
+    codigoCertificado: codigoCert, email: u.Email, passwordTemporal: passwordTemporal
+  });
+}
+
+function generarCodigoVendedor() {
+  var n = leerTabla('Vendedores').length + 1;
+  var base = 'V' + ('0000' + n).slice(-4);
+  // Asegura unicidad.
+  while (buscarFila('Vendedores', 'CodigoVendedor', base)) {
+    n++; base = 'V' + ('0000' + n).slice(-4);
+  }
+  return base;
+}
+
+function verificarCertificado(codigo) {
+  var c = buscarFila('Certificados', 'CodigoCertificado', String(codigo || ''));
+  if (!c) return { valido: false };
+  var cand = buscarFila('Candidatos', 'CandidateId', c.CandidateId);
+  return {
+    valido: String(c.Estado) === 'vigente',
+    codigo: c.CodigoCertificado,
+    nombre: cand ? cand.NombreCompleto : '',
+    fechaEmision: c.FechaEmision,
+    puntaje: c.PuntajeFinal
+  };
+}
+
+/* ============================================================================================
+ * 13. DASHBOARD, CRM Y PROSPECTOS (vendedor)
+ * ==========================================================================================*/
+
+function sellerDeUsuario(u) {
+  return buscarFila('Vendedores', 'CandidateId', u.CandidateId);
+}
+
+function accDashboardVendedor(u) {
+  var v = sellerDeUsuario(u);
+  if (!v) return respuesta(false, null, 'NO_VENDEDOR', 'No se encontró tu perfil de vendedor.');
+  var prospectos = filtrarFilas('Prospectos', 'SellerId', v.SellerId);
+  var ventas = filtrarFilas('Ventas', 'SellerId', v.SellerId);
+  var comisiones = filtrarFilas('Comisiones', 'SellerId', v.SellerId);
+
+  var ganados = prospectos.filter(function (p) { return String(p.Etapa) === 'ganado'; }).length;
+  var ventasAprobadas = ventas.filter(function (s) { return String(s.Estado) === 'aprobada'; });
+  var comisionesPendientes = comisiones.filter(function (c) { return String(c.Estado) === 'pendiente' || String(c.Estado) === 'aprobada'; });
+  var comisionesPagadas = comisiones.filter(function (c) { return String(c.Estado) === 'pagada'; });
+  function suma(arr) { return arr.reduce(function (s, c) { return s + Number(c.Monto || 0); }, 0); }
+
+  return respuesta(true, {
+    vendedor: {
+      codigoVendedor: v.CodigoVendedor, codigoReferido: v.CodigoReferido, nivel: v.Nivel,
+      estado: v.Estado, fechaCertificacion: v.FechaCertificacion
+    },
+    kpis: {
+      prospectos: prospectos.length,
+      clientesActivos: ganados,
+      ventasCerradas: ventasAprobadas.length,
+      comisionesPendientes: suma(comisionesPendientes),
+      comisionesPagadas: suma(comisionesPagadas),
+      tasaConversion: prospectos.length ? Math.round((ganados / prospectos.length) * 100) : 0
+    }
+  });
+}
+
+function accListarProspectos(u) {
+  var v = sellerDeUsuario(u);
+  return respuesta(true, filtrarFilas('Prospectos', 'SellerId', v.SellerId));
+}
+
+function accCrearProspecto(u, payload) {
+  if (String(configGet('mantenimiento')) === '1') {
+    return respuesta(false, null, 'MANTENIMIENTO', 'Sistema en mantenimiento. Intenta más tarde.');
+  }
+  var v = sellerDeUsuario(u);
+  if (!payload.empresa && !payload.contacto) {
+    return respuesta(false, null, 'DATOS', 'Indica al menos empresa o contacto.');
+  }
+  // Anti-duplicado: mismo email o whatsapp en cualquier vendedor => revisión.
+  var email = String(payload.email || '').toLowerCase().trim();
+  var whatsapp = String(payload.whatsapp || '').replace(/[^\d+]/g, '');
+  var dup = leerTabla('Prospectos').filter(function (p) {
+    return (email && String(p.Email).toLowerCase() === email) ||
+      (whatsapp && String(p.WhatsApp).replace(/[^\d+]/g, '') === whatsapp);
+  });
+  if (dup.length) {
+    return respuesta(false, { duplicados: dup.length }, 'DUPLICADO',
+      'Ya existe un prospecto con ese contacto. Un administrador revisará la atribución.');
+  }
+
+  var prospectId = idUnico('pros');
+  insertarFila('Prospectos', {
+    ProspectId: prospectId, SellerId: v.SellerId, Empresa: payload.empresa || '',
+    Contacto: payload.contacto || '', Email: email, WhatsApp: whatsapp, Pais: payload.pais || '',
+    Sector: payload.sector || '', Fuente: payload.fuente || '', Etapa: payload.etapa || 'nuevo',
+    ValorEstimado: Number(payload.valorEstimado || 0), ProximaAccion: payload.proximaAccion || '',
+    FechaSeguimiento: payload.fechaSeguimiento || '', Notas: payload.notas || '',
+    FechaCreacion: new Date(), FechaActualizacion: new Date()
+  });
+  return respuesta(true, { prospectId: prospectId });
+}
+
+function accActualizarProspecto(u, payload) {
+  var v = sellerDeUsuario(u);
+  var p = buscarFila('Prospectos', 'ProspectId', String(payload.prospectId || ''));
+  if (!p) return respuesta(false, null, 'NO_ENCONTRADO', 'Prospecto no encontrado.');
+  if (String(p.SellerId) !== String(v.SellerId)) {
+    return respuesta(false, null, 'PROHIBIDO', 'Este prospecto no te pertenece.');
+  }
+  var permitidos = ['Empresa', 'Contacto', 'Email', 'WhatsApp', 'Pais', 'Sector', 'Fuente',
+    'Etapa', 'ValorEstimado', 'ProximaAccion', 'FechaSeguimiento', 'Notas'];
+  var cambios = { FechaActualizacion: new Date() };
+  permitidos.forEach(function (c) {
+    var clave = c.charAt(0).toLowerCase() + c.slice(1);
+    if (payload[clave] !== undefined) cambios[c] = payload[clave];
+  });
+  actualizarFila('Prospectos', 'ProspectId', p.ProspectId, cambios);
+  return respuesta(true, { actualizado: true });
+}
+
+function accRegistrarActividad(u, payload) {
+  var v = sellerDeUsuario(u);
+  var p = buscarFila('Prospectos', 'ProspectId', String(payload.prospectId || ''));
+  if (!p || String(p.SellerId) !== String(v.SellerId)) {
+    return respuesta(false, null, 'PROHIBIDO', 'Prospecto inválido.');
+  }
+  insertarFila('ActividadesCRM', {
+    ActivityId: idUnico('act'), ProspectId: p.ProspectId, SellerId: v.SellerId,
+    Tipo: payload.tipo || 'nota', Descripcion: payload.descripcion || '', Fecha: new Date(),
+    ProximaAccion: payload.proximaAccion || ''
+  });
+  if (payload.proximaAccion || payload.fechaSeguimiento) {
+    actualizarFila('Prospectos', 'ProspectId', p.ProspectId, {
+      ProximaAccion: payload.proximaAccion || p.ProximaAccion,
+      FechaSeguimiento: payload.fechaSeguimiento || p.FechaSeguimiento,
+      FechaActualizacion: new Date()
+    });
+  }
+  return respuesta(true, { registrada: true });
+}
+
+/* ============================================================================================
+ * 14. VENTAS, COMISIONES Y RENOVACIONES
+ * ==========================================================================================*/
+
+function accListarVentas(u) {
+  var v = sellerDeUsuario(u);
+  return respuesta(true, filtrarFilas('Ventas', 'SellerId', v.SellerId));
+}
+
+function accRegistrarVenta(u, payload) {
+  if (String(configGet('mantenimiento')) === '1') {
+    return respuesta(false, null, 'MANTENIMIENTO', 'Sistema en mantenimiento.');
+  }
+  var v = sellerDeUsuario(u);
+  var monto = Number(payload.monto || 0);
+  if (!payload.cliente || !payload.plan || monto <= 0) {
+    return respuesta(false, null, 'DATOS', 'Cliente, plan y monto (>0) son obligatorios.');
+  }
+  var saleId = idUnico('sale');
+  // La venta entra como PENDIENTE. No genera comisión hasta ser aprobada por admin.
+  insertarFila('Ventas', {
+    SaleId: saleId, SellerId: v.SellerId, ProspectId: payload.prospectId || '',
+    Cliente: payload.cliente, Plan: payload.plan, Monto: monto,
+    TipoVenta: payload.tipoVenta || 'primera', FechaVenta: payload.fechaVenta || new Date(),
+    Estado: 'pendiente', Comprobante: payload.comprobante || '', FechaValidacion: '', ValidadoPor: ''
+  });
+  return respuesta(true, { saleId: saleId, estado: 'pendiente' });
+}
+
+function accListarComisiones(u) {
+  var v = sellerDeUsuario(u);
+  return respuesta(true, filtrarFilas('Comisiones', 'SellerId', v.SellerId));
+}
+
+/** Calcula (backend) la comisión de una venta aprobada. Fuente del %: hoja Configuracion. */
+function calcularComisionDeVenta(venta) {
+  var esRenovacion = String(venta.TipoVenta) === 'renovacion';
+  var pct = esRenovacion ? configNum('comision_renovacion', 0.05) : configNum('comision_primera_venta', 0.15);
+  var monto = +(Number(venta.Monto || 0) * pct).toFixed(2);
+  var commissionId = idUnico('com');
+  insertarFila('Comisiones', {
+    CommissionId: commissionId, SaleId: venta.SaleId, SellerId: venta.SellerId,
+    Tipo: esRenovacion ? 'renovacion' : 'primera', Porcentaje: pct, Monto: monto,
+    Estado: 'pendiente', FechaCreacion: new Date(),
+    FechaProgramada: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), FechaPago: '', MetodoPago: ''
+  });
+  return { commissionId: commissionId, monto: monto, porcentaje: pct };
+}
+
+/* ============================================================================================
+ * 15. CHATBOT
+ * ==========================================================================================*/
+
+function accRegistrarChat(payload, token) {
+  var u = verificarSesion(token);
+  insertarFila('ChatbotLogs', {
+    ChatId: idUnico('chat'), UserId: u ? u.UserId : (payload.anonId || 'anon'),
+    Mensaje: payload.mensaje || '', Intencion: payload.intencion || '',
+    Confianza: Number(payload.confianza || 0), Respuesta: payload.respuesta || '',
+    Fecha: new Date(), Resuelto: payload.resuelto ? 'true' : 'false'
+  });
+  return respuesta(true, { registrado: true });
+}
+
+function accRegistrarPreguntaNoResuelta(payload, token) {
+  var u = verificarSesion(token);
+  insertarFila('PreguntasNoResueltas', {
+    UnresolvedId: idUnico('unr'), UserId: u ? u.UserId : (payload.anonId || 'anon'),
+    Pregunta: payload.pregunta || '', Contexto: payload.contexto || '', Fecha: new Date(),
+    Revisado: 'false', RespuestaAgregada: ''
+  });
+  return respuesta(true, { registrado: true });
+}
+
+/* ============================================================================================
+ * 16. PERFIL DEL VENDEDOR/CANDIDATO
+ * ==========================================================================================*/
+
+function accActualizarPerfil(u, payload) {
+  var permitidos = ['Ciudad', 'ZonaHoraria', 'Idioma', 'WhatsApp', 'MedioContacto'];
+  var cambios = {};
+  permitidos.forEach(function (c) {
+    var clave = c.charAt(0).toLowerCase() + c.slice(1);
+    if (payload[clave] !== undefined) cambios[c] = payload[clave];
+  });
+  if (Object.keys(cambios).length) {
+    actualizarFila('Candidatos', 'CandidateId', u.CandidateId, cambios);
+  }
+  return respuesta(true, { actualizado: true });
+}
+
+/* ============================================================================================
+ * 17. ADMINISTRACIÓN
+ * ==========================================================================================*/
+
+var HOJAS_ADMIN_LEGIBLES = ['Candidatos', 'Usuarios', 'Vendedores', 'Ventas', 'Comisiones',
+  'Prospectos', 'Renovaciones', 'IntentosExamen', 'Simulaciones', 'TerminosAceptados',
+  'Certificados', 'ChatbotLogs', 'PreguntasNoResueltas', 'Auditoria', 'Modulos', 'Preguntas',
+  'Configuracion', 'Progreso'];
+
+function accAdminListar(payload) {
+  var hoja = String(payload.hoja || '');
+  if (HOJAS_ADMIN_LEGIBLES.indexOf(hoja) < 0) {
+    return respuesta(false, null, 'HOJA_INVALIDA', 'Hoja no permitida.');
+  }
+  var filas = leerTabla(hoja);
+  // No exponer hashes/salt.
+  if (hoja === 'Usuarios') {
+    filas = filas.map(function (f) {
+      var c = {}; for (var k in f) if (k !== 'PasswordHash' && k !== 'Salt') c[k] = f[k];
+      return c;
+    });
+  }
+  if (payload.filtroColumna && payload.filtroValor !== undefined) {
+    filas = filas.filter(function (f) {
+      return String(f[payload.filtroColumna]) === String(payload.filtroValor);
+    });
+  }
+  return respuesta(true, filas);
+}
+
+function accAdminCandidato(u, payload) {
+  var candidateId = String(payload.candidateId || '');
+  var accion = String(payload.accion || ''); // aprobar|rechazar|suspender
+  var mapa = { aprobar: 'aprobado', rechazar: 'rechazado', suspender: 'suspendido' };
+  if (!mapa[accion]) return respuesta(false, null, 'DATOS', 'Acción inválida.');
+  actualizarFila('Candidatos', 'CandidateId', candidateId, { Estado: mapa[accion] });
+  auditar(u.UserId, 'admin_candidato_' + accion, 'candidato', candidateId, null, null, '');
+  return respuesta(true, { estado: mapa[accion] });
+}
+
+function accAdminActualizarVenta(u, payload) {
+  var saleId = String(payload.saleId || '');
+  var estado = String(payload.estado || '');
+  if (['pendiente', 'en_revision', 'aprobada', 'rechazada', 'cancelada', 'reembolsada'].indexOf(estado) < 0) {
+    return respuesta(false, null, 'DATOS', 'Estado inválido.');
+  }
+  var venta = buscarFila('Ventas', 'SaleId', saleId);
+  if (!venta) return respuesta(false, null, 'NO_ENCONTRADO', 'Venta no encontrada.');
+  var previo = { estado: venta.Estado };
+  actualizarFila('Ventas', 'SaleId', saleId, {
+    Estado: estado, FechaValidacion: new Date(), ValidadoPor: u.Email,
+    Comprobante: payload.observacion ? (venta.Comprobante + ' | ' + payload.observacion) : venta.Comprobante
+  });
+
+  var comisionInfo = null;
+  // Al aprobar, se genera la comisión (si no existe ya para esa venta).
+  if (estado === 'aprobada') {
+    var existe = filtrarFilas('Comisiones', 'SaleId', saleId).length > 0;
+    if (!existe) {
+      venta.Estado = 'aprobada';
+      comisionInfo = calcularComisionDeVenta(venta);
+    }
+    // Actualiza contadores del vendedor.
+    var vend = buscarFila('Vendedores', 'SellerId', venta.SellerId);
+    if (vend) {
+      var ventasAprobadas = filtrarFilas('Ventas', 'SellerId', venta.SellerId)
+        .filter(function (s) { return String(s.Estado) === 'aprobada'; }).length;
+      actualizarFila('Vendedores', 'SellerId', vend.SellerId, {
+        VentasTotales: ventasAprobadas, ClientesActivos: ventasAprobadas
+      });
+    }
+  }
+  // Al reembolsar/cancelar, anula comisiones asociadas.
+  if (estado === 'reembolsada' || estado === 'cancelada') {
+    filtrarFilas('Comisiones', 'SaleId', saleId).forEach(function (c) {
+      actualizarFila('Comisiones', 'CommissionId', c.CommissionId, { Estado: 'anulada' });
+    });
+  }
+  auditar(u.UserId, 'admin_venta_' + estado, 'venta', saleId, previo, { estado: estado }, '');
+  return respuesta(true, { estado: estado, comision: comisionInfo });
+}
+
+function accAdminCalcularComision(u, payload) {
+  var venta = buscarFila('Ventas', 'SaleId', String(payload.saleId || ''));
+  if (!venta) return respuesta(false, null, 'NO_ENCONTRADO', 'Venta no encontrada.');
+  if (String(venta.Estado) !== 'aprobada') {
+    return respuesta(false, null, 'ESTADO', 'La venta debe estar aprobada.');
+  }
+  if (filtrarFilas('Comisiones', 'SaleId', venta.SaleId).length) {
+    return respuesta(false, null, 'YA_EXISTE', 'La comisión ya fue calculada.');
+  }
+  var info = calcularComisionDeVenta(venta);
+  auditar(u.UserId, 'admin_calcular_comision', 'venta', venta.SaleId, null, info, '');
+  return respuesta(true, info);
+}
+
+function accAdminMarcarComisionPagada(u, payload) {
+  var c = buscarFila('Comisiones', 'CommissionId', String(payload.commissionId || ''));
+  if (!c) return respuesta(false, null, 'NO_ENCONTRADO', 'Comisión no encontrada.');
+  actualizarFila('Comisiones', 'CommissionId', c.CommissionId, {
+    Estado: 'pagada', FechaPago: new Date(), MetodoPago: payload.metodoPago || ''
+  });
+  auditar(u.UserId, 'admin_comision_pagada', 'comision', c.CommissionId, { estado: c.Estado }, { estado: 'pagada' }, '');
+  return respuesta(true, { pagada: true });
+}
+
+function accAdminRegistrarRenovacion(u, payload) {
+  var venta = buscarFila('Ventas', 'SaleId', String(payload.saleId || ''));
+  if (!venta) return respuesta(false, null, 'NO_ENCONTRADO', 'Venta original no encontrada.');
+  var monto = Number(payload.monto || venta.Monto || 0);
+  var renewalId = idUnico('ren');
+  // Crea una "venta" tipo renovación aprobada para generar la comisión del 5%.
+  var saleRenId = idUnico('sale');
+  insertarFila('Ventas', {
+    SaleId: saleRenId, SellerId: venta.SellerId, ProspectId: venta.ProspectId, Cliente: venta.Cliente,
+    Plan: venta.Plan, Monto: monto, TipoVenta: 'renovacion', FechaVenta: new Date(),
+    Estado: 'aprobada', Comprobante: 'renovacion de ' + venta.SaleId, FechaValidacion: new Date(),
+    ValidadoPor: u.Email
+  });
+  var comision = calcularComisionDeVenta({ SaleId: saleRenId, SellerId: venta.SellerId, Monto: monto, TipoVenta: 'renovacion' });
+  insertarFila('Renovaciones', {
+    RenewalId: renewalId, SaleId: venta.SaleId, Cliente: venta.Cliente, Periodo: payload.periodo || '',
+    Monto: monto, Estado: 'pagada', FechaPago: new Date(), CommissionId: comision.commissionId
+  });
+  auditar(u.UserId, 'admin_renovacion', 'venta', venta.SaleId, null, { monto: monto, comision: comision }, '');
+  return respuesta(true, { renewalId: renewalId, comision: comision });
+}
+
+function accAdminGestionarVendedor(u, payload) {
+  var sellerId = String(payload.sellerId || '');
+  var estado = String(payload.estado || ''); // activo|inactivo|suspendido
+  var nivel = payload.nivel;
+  var cambios = {};
+  if (['activo', 'inactivo', 'suspendido'].indexOf(estado) >= 0) cambios.Estado = estado;
+  if (nivel) cambios.Nivel = nivel;
+  if (!Object.keys(cambios).length) return respuesta(false, null, 'DATOS', 'Nada para actualizar.');
+  actualizarFila('Vendedores', 'SellerId', sellerId, cambios);
+  auditar(u.UserId, 'admin_gestion_vendedor', 'vendedor', sellerId, null, cambios, '');
+  return respuesta(true, cambios);
+}
+
+function accAdminResetPassword(u, payload) {
+  var target = buscarFila('Usuarios', 'Email', String(payload.email || '').toLowerCase());
+  if (!target) return respuesta(false, null, 'NO_ENCONTRADO', 'Usuario no encontrado.');
+  var temporal = generarPasswordTemporal();
+  var salt = generarSalt();
+  actualizarFila('Usuarios', 'UserId', target.UserId, {
+    PasswordHash: hashPassword(temporal, salt), Salt: salt, DebeCambiarPassword: 'true',
+    IntentosFallidos: 0, BloqueadoHasta: ''
+  });
+  // Cierra sesiones activas del usuario.
+  filtrarFilas('Sesiones', 'UserId', target.UserId).forEach(function (s) {
+    if (String(s.Estado) === 'activa') actualizarFila('Sesiones', 'SessionId', s.SessionId, { Estado: 'revocada' });
+  });
+  auditar(u.UserId, 'admin_reset_password', 'usuario', target.UserId, null, null, '');
+  return respuesta(true, { passwordTemporal: temporal });
+}
+
+function accAdminConfigSet(u, payload) {
+  if (!payload.clave) return respuesta(false, null, 'DATOS', 'clave es obligatoria.');
+  var previo = configGet(payload.clave);
+  configSet(payload.clave, String(payload.valor), payload.descripcion);
+  auditar(u.UserId, 'admin_config', 'configuracion', payload.clave, { valor: previo }, { valor: payload.valor }, '');
+  return respuesta(true, { clave: payload.clave, valor: payload.valor });
+}
+
+function accAdminGuardarModulo(u, payload) {
+  var id = payload.moduleId || idUnico('mod');
+  var existe = buscarFila('Modulos', 'ModuleId', id);
+  var datos = {
+    ModuleId: id, Titulo: payload.titulo || '', Descripcion: payload.descripcion || '',
+    Orden: Number(payload.orden || 0), Obligatorio: payload.obligatorio ? 'true' : 'false',
+    Estado: payload.estado || 'activo', TiempoEstimado: payload.tiempoEstimado || '',
+    PuntajeMinimo: Number(payload.puntajeMinimo || configNum('puntaje_minimo', 85))
+  };
+  if (existe) actualizarFila('Modulos', 'ModuleId', id, datos);
+  else insertarFila('Modulos', datos);
+  auditar(u.UserId, 'admin_guardar_modulo', 'modulo', id, null, datos, '');
+  return respuesta(true, { moduleId: id });
+}
+
+function accAdminGuardarPregunta(u, payload) {
+  var id = payload.questionId || idUnico('q');
+  var existe = buscarFila('Preguntas', 'QuestionId', id);
+  var datos = {
+    QuestionId: id, ModuleId: payload.moduleId || '', Tipo: payload.tipo || 'opcion',
+    Pregunta: payload.pregunta || '',
+    Opciones: typeof payload.opciones === 'string' ? payload.opciones : JSON.stringify(payload.opciones || []),
+    RespuestaCorrecta: payload.respuestaCorrecta || '', Explicacion: payload.explicacion || '',
+    Puntaje: Number(payload.puntaje || 1), Estado: payload.estado || 'activo'
+  };
+  if (existe) actualizarFila('Preguntas', 'QuestionId', id, datos);
+  else insertarFila('Preguntas', datos);
+  return respuesta(true, { questionId: id });
+}
+
+function accAdminResolverPregunta(u, payload) {
+  var id = String(payload.unresolvedId || '');
+  actualizarFila('PreguntasNoResueltas', 'UnresolvedId', id, {
+    Revisado: 'true', RespuestaAgregada: payload.respuesta || ''
+  });
+  return respuesta(true, { resuelta: true });
+}
+
+/* ============================================================================================
+ * 18. DATOS DE PRUEBA (opcional, desde el menú)
+ * ==========================================================================================*/
+
+function menuCargarDatosPrueba() {
+  asegurarHojas();
+  asegurarConfigDefaults();
+  cargarModulosPrueba();
+  cargarPreguntasPrueba();
+  seedDemoComercial();
+  SpreadsheetApp.getUi().alert('Datos de prueba cargados: 15 módulos, banco de preguntas, examen final y datos comerciales demo.');
+}
+
+// Los 15 módulos deben coincidir con los ids del frontend (mod1..mod15).
+function cargarModulosPrueba() {
+  if (leerTabla('Modulos').length) return;
+  var mods = [
+    ['mod1', 'Bienvenida a ARCA'], ['mod2', 'Dominio del producto'], ['mod3', 'Cliente ideal'],
+    ['mod4', 'Fundamentos de ventas'], ['mod5', 'Prospección'], ['mod6', 'Descubrimiento de necesidades'],
+    ['mod7', 'Presentación y demostración'], ['mod8', 'Manejo de objeciones'], ['mod9', 'Seguimiento'],
+    ['mod10', 'Cierre'], ['mod11', 'CRM del vendedor'], ['mod12', 'Ética y cumplimiento'],
+    ['mod13', 'Comisiones'], ['mod14', 'Productividad del vendedor'], ['mod15', 'Examen final y certificación']
+  ];
+  mods.forEach(function (m, i) {
+    insertarFila('Modulos', {
+      ModuleId: m[0], Titulo: m[1], Descripcion: m[1], Orden: i + 1, Obligatorio: 'true',
+      Estado: 'activo', TiempoEstimado: '20 min', PuntajeMinimo: configNum('puntaje_minimo', 85)
+    });
+  });
+}
+
+function cargarPreguntasPrueba() {
+  if (leerTabla('Preguntas').length) return;
+  // Al menos una pregunta por módulo + varias para el examen final ('final').
+  var qs = [
+    ['mod1', 'opcion', '¿Qué integra ARCA en una sola plataforma?', '["Solo POS","POS, inventario y contabilidad","Solo contabilidad","Redes sociales"]', 'POS, inventario y contabilidad', 'ARCA conecta ventas, inventario y contabilidad automática.'],
+    ['mod2', 'opcion', '¿Qué módulo controla lotes y vencimientos?', '["POS","Inventario","Reportes","Facturación"]', 'Inventario', 'El inventario maneja lotes, vencimientos y almacenes.'],
+    ['mod3', 'opcion', '¿Cuál es una señal de oportunidad?', '["Todo perfecto","Procesos manuales y descontrol de inventario","No tiene empleados","No vende"]', 'Procesos manuales y descontrol de inventario', 'Los negocios desorganizados son buenos prospectos.'],
+    ['mod4', 'vf', 'Vender es conectar una necesidad con una solución.', '["Verdadero","Falso"]', 'Verdadero', 'Vender no es solo informar características.'],
+    ['mod5', 'vf', 'Está permitido enviar spam masivo a prospectos.', '["Verdadero","Falso"]', 'Falso', 'Nunca spam ni mensajes engañosos.'],
+    ['mod6', 'opcion', 'En el diagnóstico, ¿qué hay que hacer?', '["Interrogar","Preguntar y escuchar","Presentar de inmediato","Hablar de precio"]', 'Preguntar y escuchar', 'El diagnóstico se basa en escucha activa.'],
+    ['mod7', 'opcion', 'Una buena demo debe...', '["Mostrar todo","Conectar función con el problema del cliente","Durar horas","Evitar el cierre"]', 'Conectar función con el problema del cliente', 'Personaliza según el diagnóstico.'],
+    ['mod8', 'opcion', 'Ante una objeción primero se debe...', '["Rebatir","Preguntar para entender","Bajar el precio","Ignorar"]', 'Preguntar para entender', 'Aclara antes de responder.'],
+    ['mod9', 'vf', 'Cada seguimiento debe aportar valor, no solo preguntar si ya decidió.', '["Verdadero","Falso"]', 'Verdadero', 'El seguimiento aporta datos o casos.'],
+    ['mod10', 'opcion', '¿Qué es una señal de compra?', '["Silencio","Preguntar por plazos e implementación","Colgar","Ninguna"]', 'Preguntar por plazos e implementación', 'Indica que está listo para cerrar.'],
+    ['mod11', 'vf', 'Lo que no está registrado en el CRM no cuenta para comisiones.', '["Verdadero","Falso"]', 'Verdadero', 'El registro con evidencia es clave.'],
+    ['mod12', 'vf', 'Se pueden ofrecer descuentos sin autorización.', '["Verdadero","Falso"]', 'Falso', 'Es una falta grave del código de conducta.'],
+    ['mod13', 'opcion', '¿Cuál es la comisión de la primera venta?', '["5%","10%","15%","20%"]', '15%', 'Primera venta 15%, renovación 5%.'],
+    ['mod14', 'vf', 'Medir la conversión ayuda a mejorar.', '["Verdadero","Falso"]', 'Verdadero', 'Los indicadores guían la mejora continua.'],
+    // Examen final
+    ['final', 'opcion', '¿Comisión por renovación?', '["5%","10%","15%","0%"]', '5%', 'Las renovaciones pagan 5%.'],
+    ['final', 'vf', 'La atribución es del primer registro válido con evidencia.', '["Verdadero","Falso"]', 'Verdadero', 'Política de prospectos.'],
+    ['final', 'opcion', 'Ante "está caro", lo mejor es...', '["Bajar el precio","Recuperar el impacto del problema","Insistir","Retirarse"]', 'Recuperar el impacto del problema', 'Suele significar que no ve el valor.'],
+    ['final', 'opcion', '¿Qué NO se debe hacer?', '["Registrar prospectos ajenos","Escuchar","Diagnosticar","Dar seguimiento"]', 'Registrar prospectos ajenos', 'Es una falta ética.'],
+    ['final', 'vf', 'El motor de ARCA genera asientos contables automáticamente.', '["Verdadero","Falso"]', 'Verdadero', 'Cada evento genera su asiento.']
+  ];
+  qs.forEach(function (q) {
+    insertarFila('Preguntas', {
+      QuestionId: idUnico('q'), ModuleId: q[0], Tipo: q[1], Pregunta: q[2], Opciones: q[3],
+      RespuestaCorrecta: q[4], Explicacion: q[5], Puntaje: 1, Estado: 'activo'
+    });
+  });
+}
+
+/**
+ * Datos comerciales de demostración: un vendedor certificado con prospectos,
+ * ventas y comisiones, más un candidato en capacitación y logs de chatbot.
+ * Credenciales de prueba documentadas en docs/CUENTAS-PRUEBA.md.
+ */
+function seedDemoComercial() {
+  if (buscarFila('Usuarios', 'Email', 'vendedor.demo@arca.app')) return; // idempotente
+
+  // --- Candidato en capacitación ---
+  var candId = idUnico('cand');
+  insertarFila('Candidatos', {
+    CandidateId: candId, NombreCompleto: 'Ana Prueba', Pais: 'Nicaragua', Ciudad: 'Managua',
+    Email: 'candidato.demo@arca.app', WhatsApp: '50588880001', Idioma: 'es',
+    Estado: 'en_capacitacion', FechaRegistro: new Date(), UltimaActividad: new Date(),
+    Progreso: 40, Certificado: 'false'
+  });
+  try { crearUsuario('candidato.demo@arca.app', 'Candidato123!', 'candidato', candId, false); } catch (e) {}
+
+  // --- Vendedor certificado ---
+  var vCandId = idUnico('cand');
+  insertarFila('Candidatos', {
+    CandidateId: vCandId, NombreCompleto: 'Carlos Vendedor', Pais: 'Honduras', Ciudad: 'Tegucigalpa',
+    Email: 'vendedor.demo@arca.app', WhatsApp: '50488880002', Idioma: 'es',
+    Estado: 'certificado', FechaRegistro: new Date(), UltimaActividad: new Date(),
+    Progreso: 100, Certificado: 'true'
+  });
+  try { crearUsuario('vendedor.demo@arca.app', 'Vendedor123!', 'vendedor', vCandId, false); } catch (e) {}
+  var codigo = generarCodigoVendedor();
+  insertarFila('Certificados', {
+    CertificateId: idUnico('cert'), CandidateId: vCandId, CodigoCertificado: 'ARCA-DEMO-' + codigo,
+    FechaEmision: new Date(), PuntajeFinal: 92, Estado: 'vigente', UrlVerificacion: ''
+  });
+  var sellerId = idUnico('sell');
+  insertarFila('Vendedores', {
+    SellerId: sellerId, CandidateId: vCandId, CodigoVendedor: codigo, CodigoReferido: codigo + '-REF',
+    Nivel: 'inicial', Estado: 'activo', FechaCertificacion: new Date(), ClientesActivos: 2, VentasTotales: 2
+  });
+
+  // --- Prospectos ---
+  var prospectos = [
+    ['Ferretería El Clavo', 'Luis M.', 'nuevo', 45.99],
+    ['Farmacia Vida', 'Rosa P.', 'demo', 199],
+    ['Distribuidora Sur', 'Jorge T.', 'propuesta', 199],
+    ['Tienda La Esquina', 'María G.', 'ganado', 45.99],
+    ['Abarrotería Central', 'Pedro R.', 'contactado', 45.99]
+  ];
+  prospectos.forEach(function (p) {
+    insertarFila('Prospectos', {
+      ProspectId: idUnico('pros'), SellerId: sellerId, Empresa: p[0], Contacto: p[1],
+      Pais: 'Nicaragua', Sector: 'Comercio', Fuente: 'demo', Etapa: p[2], ValorEstimado: p[3],
+      FechaCreacion: new Date(), FechaActualizacion: new Date()
+    });
+  });
+
+  // --- Ventas (2 aprobadas generan comisión) ---
+  var ventas = [
+    ['Tienda La Esquina', 'Pro', 45.99, 'primera', 'aprobada'],
+    ['Farmacia Vida', 'Enterprise', 199, 'primera', 'aprobada'],
+    ['Distribuidora Sur', 'Enterprise', 199, 'primera', 'pendiente']
+  ];
+  ventas.forEach(function (s) {
+    var saleId = idUnico('sale');
+    insertarFila('Ventas', {
+      SaleId: saleId, SellerId: sellerId, Cliente: s[0], Plan: s[1], Monto: s[2],
+      TipoVenta: s[3], FechaVenta: new Date(), Estado: s[4],
+      Comprobante: 'demo', FechaValidacion: s[4] === 'aprobada' ? new Date() : '',
+      ValidadoPor: s[4] === 'aprobada' ? 'seed' : ''
+    });
+    if (s[4] === 'aprobada') {
+      calcularComisionDeVenta({ SaleId: saleId, SellerId: sellerId, Monto: s[2], TipoVenta: s[3] });
+    }
+  });
+
+  // --- Chatbot logs + preguntas no resueltas ---
+  var chats = [
+    ['hola', 'saludo', 1, 'true'], ['cuanto gano', 'comision_general', 0.9, 'true'],
+    ['como me certifico', 'certificacion', 0.9, 'true']
+  ];
+  chats.forEach(function (c) {
+    insertarFila('ChatbotLogs', {
+      ChatId: idUnico('chat'), UserId: 'demo', Mensaje: c[0], Intencion: c[1],
+      Confianza: c[2], Respuesta: '(demo)', Fecha: new Date(), Resuelto: c[3]
+    });
+  });
+  ['¿tienen app movil?', '¿puedo vender en otro pais sin internet?'].forEach(function (q) {
+    insertarFila('PreguntasNoResueltas', {
+      UnresolvedId: idUnico('unr'), UserId: 'demo', Pregunta: q, Contexto: '', Fecha: new Date(),
+      Revisado: 'false', RespuestaAgregada: ''
+    });
+  });
+}

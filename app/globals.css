@@ -1,0 +1,377 @@
+@import "tailwindcss";
+
+/* ============================================================
+ * Academia Comercial ARCA — Design system
+ * Tokens heredados de la identidad de ARCA (SaaS principal).
+ * ============================================================ */
+
+@theme {
+  /* Paleta principal */
+  --color-primary: #2b1f3a;
+  --color-primary-hover: #3d2d52;
+  --color-secondary: #5c4b75;
+  --color-secondary-hover: #6e5a8a;
+  --color-tertiary: #a18bcf;
+  --color-tertiary-light: #d4c8f0;
+
+  /* Gradiente de marca (landing/acentos) */
+  --grad-brand-from: #7c3aed;
+  --grad-brand-to: #2563eb;
+
+  /* Superficies */
+  --color-neutral: #f8f7fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f2f0f7;
+  --color-dark-bg: #0b0416;
+  --color-dark-surface: #190c2d;
+
+  /* Bordes */
+  --color-border: #e2dff0;
+  --color-border-strong: #c4bedf;
+
+  /* Texto */
+  --color-text-primary: #2b1f3a;
+  --color-text-secondary: #5c4b75;
+  --color-text-muted: #8b7fa8;
+  --color-text-on-dark: #f8f7fa;
+  --color-text-on-primary: #ffffff;
+
+  /* Semaforo */
+  --color-success: #16a34a;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-error: #dc2626;
+  --color-error-bg: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-bg: #eff6ff;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(43, 31, 58, 0.06);
+  --shadow-md: 0 4px 12px rgba(43, 31, 58, 0.1);
+  --shadow-lg: 0 8px 24px rgba(43, 31, 58, 0.14);
+
+  /* Layout */
+  --sidebar-width: 248px;
+  --header-height: 56px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Font */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================================
+ * Base — dentro de @layer base para que las utilidades de Tailwind
+ * (text-*, border-*, etc.) puedan sobrescribir estos valores.
+ * ============================================================ */
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background: var(--color-neutral);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--color-tertiary-light);
+    color: var(--color-text-primary);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/* ============================================================
+ * Tipografia
+ * ============================================================ */
+
+.text-display {
+  font-size: 48px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.text-2xl {
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.text-xl {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.text-lg {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.text-base {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.text-small {
+  font-size: 13px;
+  line-height: 1.45;
+}
+.text-label {
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+ * Componentes utilitarios (.arca-*)
+ * ============================================================ */
+
+.arca-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.arca-input,
+.arca-select,
+.arca-textarea {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.arca-input::placeholder,
+.arca-textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.arca-input:focus,
+.arca-select:focus,
+.arca-textarea:focus {
+  border-color: var(--color-tertiary);
+  box-shadow: 0 0 0 3px rgba(161, 139, 207, 0.2);
+}
+
+.arca-input:disabled,
+.arca-select:disabled,
+.arca-textarea:disabled {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.arca-input-error {
+  border-color: var(--color-error);
+}
+
+.arca-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease,
+    box-shadow 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+}
+.arca-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.arca-btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+.arca-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.arca-btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-secondary);
+  border-color: var(--color-border-strong);
+}
+.arca-btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  border-color: var(--color-secondary);
+}
+.arca-btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.arca-btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+}
+.arca-btn-danger {
+  background: var(--color-error);
+  color: white;
+}
+.arca-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+.arca-btn-brand {
+  background: linear-gradient(135deg, var(--grad-brand-from), var(--grad-brand-to));
+  color: #fff;
+}
+.arca-btn-brand:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.arca-btn-lg {
+  padding: 12px 22px;
+  font-size: 15px;
+}
+.arca-btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.arca-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+}
+.arca-badge-success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.arca-badge-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.arca-badge-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+.arca-badge-info {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+.arca-badge-neutral {
+  background: var(--color-surface-2);
+  color: var(--color-text-secondary);
+}
+
+/* Texto con gradiente de marca */
+.grad-text {
+  background: linear-gradient(90deg, #c4b5fd, #60a5fa, #e9d5ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Barra de progreso */
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--color-surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--grad-brand-from), var(--grad-brand-to));
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    #eae7f3 37%,
+    var(--color-surface-2) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes skeleton {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 5px;
+  border: 2px solid var(--color-neutral);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grad-text,
+  .skeleton {
+    animation: none !important;
+  }
+}
