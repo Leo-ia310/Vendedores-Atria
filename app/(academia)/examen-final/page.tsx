@@ -8,13 +8,12 @@ export default function ExamenFinalPage() {
     <>
       <PageHeader
         titulo="Examen final"
-        descripcion="Integra todo el programa. Necesitas el puntaje mínimo para certificarte. Tienes intentos limitados."
+        descripcion="Integra todo el programa. Puedes repetirlo sin límite hasta demostrar el dominio necesario para certificarte."
         breadcrumb={[{ label: "Academia", href: "/academia" }, { label: "Examen final" }]}
       />
       <ExamenRunner
         moduleId="final"
         titulo="Examen final de certificación"
-        minutos={40}
         volverHref="/academia"
         siguienteHref="/certificacion"
         siguienteLabel="Ir a certificación"

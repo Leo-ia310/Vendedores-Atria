@@ -13,7 +13,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </Link>
         <div className="w-full max-w-md">{children}</div>
         <p className="mt-8 text-center text-[12px] text-white/40">
-          © {new Date().getFullYear()} ARCA · Academia Comercial
+          © {new Date().getFullYear()} ATRIA · Academia Comercial
         </p>
       </div>
     </AppProviders>

@@ -17,15 +17,15 @@ export const DOCS_LEGALES: DocLegal[] = [
   {
     slug: "terminos",
     titulo: "Términos del programa de vendedores",
-    resumen: "Condiciones generales para participar como asesor comercial certificado de ARCA.",
+    resumen: "Condiciones generales para participar como asesor comercial certificado de ATRIA.",
     secciones: [
-      { h: "1. Objeto", p: ["Estos términos regulan la participación de una persona como asesor comercial independiente de ARCA a través de la Academia Comercial ARCA. La participación no crea una relación laboral, de sociedad ni de representación exclusiva, salvo acuerdo escrito distinto."] },
-      { h: "2. Requisitos de participación", p: ["El participante debe ser mayor de edad, proporcionar información veraz, completar la capacitación, aprobar las evaluaciones y aceptar todas las políticas del programa.", "ARCA puede aprobar, rechazar o suspender la participación cuando exista incumplimiento de estas condiciones."] },
+      { h: "1. Objeto", p: ["Estos términos regulan la participación de una persona como asesor comercial independiente de ATRIA a través de la Academia Comercial ATRIA. La participación no crea una relación laboral, de sociedad ni de representación exclusiva, salvo acuerdo escrito distinto."] },
+      { h: "2. Requisitos de participación", p: ["El participante debe ser mayor de edad, proporcionar información veraz, completar la capacitación, aprobar las evaluaciones y aceptar todas las políticas del programa.", "ATRIA puede aprobar, rechazar o suspender la participación cuando exista incumplimiento de estas condiciones."] },
       { h: "3. Certificación", p: ["La certificación se obtiene únicamente al cumplir todos los requisitos configurados (módulos, exámenes, examen final, simulaciones, aceptación de términos y puntaje mínimo). La certificación puede revocarse por incumplimiento del código de conducta."] },
-      { h: "4. Obligaciones del asesor", p: ["Representar a ARCA con honestidad, no prometer funcionalidades inexistentes, no modificar precios sin autorización, registrar correctamente sus prospectos y ventas, y respetar la propiedad de prospectos de otros asesores."] },
+      { h: "4. Obligaciones del asesor", p: ["Representar a ATRIA con honestidad, no prometer funcionalidades inexistentes, no modificar precios sin autorización, registrar correctamente sus prospectos y ventas, y respetar la propiedad de prospectos de otros asesores."] },
       { h: "5. Comisiones", p: ["Las comisiones se rigen por la Política de comisiones. Se calculan sobre ventas aprobadas y verificadas. Ver el documento específico."] },
-      { h: "6. Suspensión y terminación", p: ["ARCA puede suspender o terminar la participación por fraude, prácticas engañosas, incumplimiento de políticas o inactividad prolongada. Ver Política de suspensión y terminación."] },
-      { h: "7. Modificaciones", p: ["ARCA puede actualizar estos términos. La versión aceptada por cada participante queda registrada con fecha y hora. El uso continuado tras una actualización implica su aceptación."] },
+      { h: "6. Suspensión y terminación", p: ["ATRIA puede suspender o terminar la participación por fraude, prácticas engañosas, incumplimiento de políticas o inactividad prolongada. Ver Política de suspensión y terminación."] },
+      { h: "7. Modificaciones", p: ["ATRIA puede actualizar estos términos. La versión aceptada por cada participante queda registrada con fecha y hora. El uso continuado tras una actualización implica su aceptación."] },
     ],
   },
   {
@@ -33,8 +33,8 @@ export const DOCS_LEGALES: DocLegal[] = [
     titulo: "Política de comisiones",
     resumen: "Cómo se calculan, aprueban y pagan las comisiones del programa.",
     secciones: [
-      { h: "1. Estructura", p: ["Comisión por la primera venta o primer pago del cliente: 15%.", "Comisión por cada pago recurrente posterior (renovación): 5%.", "Los porcentajes son configurables por ARCA y rigen los vigentes al momento de aprobarse la venta."] },
-      { h: "2. Requisitos para reconocer una comisión", p: ["El cliente debe estar registrado correctamente por el asesor con evidencia.", "La venta debe estar aprobada y verificada por ARCA.", "No se reconocen comisiones sobre ventas pendientes, rechazadas, canceladas o reembolsadas."] },
+      { h: "1. Estructura", p: ["Comisión por la primera venta o primer pago del cliente: 15%.", "Comisión por cada pago recurrente posterior (renovación): 5%.", "Los porcentajes son configurables por ATRIA y rigen los vigentes al momento de aprobarse la venta."] },
+      { h: "2. Requisitos para reconocer una comisión", p: ["El cliente debe estar registrado correctamente por el asesor con evidencia.", "La venta debe estar aprobada y verificada por ATRIA.", "No se reconocen comisiones sobre ventas pendientes, rechazadas, canceladas o reembolsadas."] },
       { h: "3. Atribución y duplicados", p: ["La atribución corresponde al primer asesor que registró correctamente al prospecto con evidencia. Los prospectos duplicados pasan a revisión administrativa; no se aceptan disputas sin evidencia registrada."] },
       { h: "4. Cálculo", p: ["La comisión se calcula en el backend a partir del monto de la venta y el porcentaje configurado. El sistema no confía en montos calculados por el frontend."] },
       { h: "5. Cortes, pagos y método", p: ["Las comisiones aprobadas se programan y se pagan según la fecha de corte y el método acordado. El asesor es responsable de sus obligaciones fiscales personales cuando correspondan."] },
@@ -71,7 +71,7 @@ export const DOCS_LEGALES: DocLegal[] = [
       { h: "1. Propiedad", p: ["Un prospecto pertenece al primer asesor que lo registró correctamente con evidencia en el CRM."] },
       { h: "2. Registro correcto", p: ["Debe incluir datos de contacto verificables y el origen. Los registros incompletos o sin evidencia no otorgan prioridad de atribución."] },
       { h: "3. Duplicados y disputas", p: ["Los duplicados se resuelven a favor del primer registro válido. Las disputas se revisan administrativamente y requieren evidencia."] },
-      { h: "4. Inactividad", p: ["ARCA puede liberar prospectos sin actividad por un período prolongado para permitir su reasignación."] },
+      { h: "4. Inactividad", p: ["ATRIA puede liberar prospectos sin actividad por un período prolongado para permitir su reasignación."] },
     ],
   },
   {
@@ -86,9 +86,9 @@ export const DOCS_LEGALES: DocLegal[] = [
   {
     slug: "marca",
     titulo: "Uso de marca",
-    resumen: "Condiciones para usar el nombre y los materiales de ARCA.",
+    resumen: "Condiciones para usar el nombre y los materiales de ATRIA.",
     secciones: [
-      { h: "Uso autorizado", p: ["El asesor puede usar los materiales oficiales provistos por ARCA para fines comerciales del programa."] },
+      { h: "Uso autorizado", p: ["El asesor puede usar los materiales oficiales provistos por ATRIA para fines comerciales del programa."] },
       { h: "Restricciones", p: ["No se permite modificar el logo, crear dominios o cuentas que induzcan a confusión, ni publicar material no autorizado."] },
     ],
   },
@@ -123,7 +123,7 @@ export const DOCS_LEGALES: DocLegal[] = [
     titulo: "Disputas",
     resumen: "Cómo se resuelven los desacuerdos.",
     secciones: [
-      { h: "Procedimiento", p: ["Las disputas sobre atribución o comisiones se presentan a soporte con evidencia. ARCA revisa y comunica una resolución. Las disputas sin evidencia registrada no proceden."] },
+      { h: "Procedimiento", p: ["Las disputas sobre atribución o comisiones se presentan a soporte con evidencia. ATRIA revisa y comunica una resolución. Las disputas sin evidencia registrada no proceden."] },
     ],
   },
   {
@@ -131,15 +131,15 @@ export const DOCS_LEGALES: DocLegal[] = [
     titulo: "Propiedad intelectual",
     resumen: "Titularidad de contenidos y materiales.",
     secciones: [
-      { h: "Titularidad", p: ["El contenido de la academia, los materiales comerciales y la plataforma son propiedad de ARCA. Se licencian para uso dentro del programa y no pueden redistribuirse sin autorización."] },
+      { h: "Titularidad", p: ["El contenido de la academia, los materiales comerciales y la plataforma son propiedad de ATRIA. Se licencian para uso dentro del programa y no pueden redistribuirse sin autorización."] },
     ],
   },
   {
     slug: "limitacion",
     titulo: "Limitación de responsabilidad",
-    resumen: "Alcance de la responsabilidad de ARCA.",
+    resumen: "Alcance de la responsabilidad de ATRIA.",
     secciones: [
-      { h: "Alcance", p: ["ARCA no garantiza ingresos específicos; las comisiones dependen de la actividad del asesor. En la medida permitida por la ley, ARCA no responde por daños indirectos derivados del uso del programa."] },
+      { h: "Alcance", p: ["ATRIA no garantiza ingresos específicos; las comisiones dependen de la actividad del asesor. En la medida permitida por la ley, ATRIA no responde por daños indirectos derivados del uso del programa."] },
     ],
   },
 ];

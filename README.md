@@ -1,6 +1,6 @@
-# Academia Comercial ARCA
+# Academia Comercial ATRIA
 
-Plataforma web para reclutar, capacitar, certificar y administrar vendedores por comision de ARCA. Incluye registro, academia, examenes, simulaciones, certificacion, CRM, ventas, comisiones y panel administrativo.
+Plataforma web para reclutar, capacitar, certificar y administrar vendedores por comisión de ATRIA. Incluye registro, academia, exámenes, simulaciones, certificación, CRM, ventas, comisiones y panel administrativo.
 
 ## Stack
 
@@ -38,7 +38,7 @@ app/
   (marketing)/        landing y paginas legales
   (auth)/             login, recuperar, restablecer, cambiar-password
   registro/           wizard de registro
-  (academia)/         academia, examenes, simulador y certificacion
+  (academia)/         academia, exámenes, simulador y certificación
   (dashboard)/        panel del vendedor
   (admin)/            panel administrativo
 components/
@@ -55,4 +55,4 @@ scripts/
 
 ## Seguridad
 
-La app no expone la `service_role` en el navegador. Las llamadas del cliente entran por `/api/backend`; el servidor valida sesion/rol y usa Supabase con RLS activado. Las contrasenas se guardan con PBKDF2 + salt + `AUTH_PEPPER`; los tokens de sesion y recuperacion se guardan hasheados.
+La app no expone la `service_role` en el navegador. Las llamadas del cliente entran por `/api/backend`; el servidor valida sesión/rol y usa Supabase con RLS activado. Las contraseñas se guardan con PBKDF2 + salt + `AUTH_PEPPER`; los tokens de sesión y recuperación se guardan hasheados.

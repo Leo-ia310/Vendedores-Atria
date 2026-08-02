@@ -1,5 +1,5 @@
 /**
- * Configuración central de la Academia Comercial ARCA.
+ * Configuración central de la Academia Comercial ATRIA.
  *
  * Estos valores son la fuente de verdad del FRONTEND (textos, planes de ejemplo,
  * reglas de UI). Los valores sensibles para cálculo (comisiones, puntaje mínimo)
@@ -8,9 +8,9 @@
  */
 
 export const MARCA = {
-  producto: process.env.NEXT_PUBLIC_BRAND || "ARCA",
-  programa: process.env.NEXT_PUBLIC_PROGRAMA || "Academia Comercial ARCA",
-  emailSoporte: process.env.NEXT_PUBLIC_EMAIL_SOPORTE || "soporte@arca.app",
+  producto: process.env.NEXT_PUBLIC_BRAND || "ATRIA",
+  programa: process.env.NEXT_PUBLIC_PROGRAMA || "Academia Comercial ATRIA",
+  emailSoporte: process.env.NEXT_PUBLIC_EMAIL_SOPORTE || "soporte@atria.app",
   whatsappSoporte: process.env.NEXT_PUBLIC_WHATSAPP_SOPORTE || "50500000000",
   redes: {
     instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/",
@@ -30,10 +30,10 @@ export const COMISIONES = {
 export const CERTIFICACION = {
   puntajeMinimo: 85, // %
   intentosPorExamen: 3,
-  intentosExamenFinal: 2,
+  intentosExamenFinal: null,
 } as const;
 
-/** Planes de ARCA usados para ejemplos de comisión en la landing (fuente: SaaS ARCA). */
+/** Planes de ATRIA usados para ejemplos de comisión en la landing (fuente: SaaS ATRIA). */
 export const PLANES_EJEMPLO = [
   { nombre: "Demo", precioMensual: 0 },
   { nombre: "Pro", precioMensual: 45.99, destacado: true },

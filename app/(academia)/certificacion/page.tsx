@@ -96,7 +96,7 @@ export default function CertificacionPage() {
           <div className="flex items-center gap-3">
             <Award size={28} className="text-[color:var(--color-success)]" />
             <div>
-              <p className="text-[16px] font-semibold">Eres asesor comercial certificado de ARCA</p>
+              <p className="text-[16px] font-semibold">Eres asesor comercial certificado de ATRIA</p>
               <p className="text-[13px] text-[color:var(--color-text-muted)]">Certificado {cred.codigoCertificado}</p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 /**
- * Contenido de la Academia Comercial ARCA — 15 módulos.
+ * Contenido de la Academia Comercial ATRIA — 15 módulos.
  *
  * El CONTENIDO vive en código (versionado, rápido de editar). El PROGRESO y los
  * RESULTADOS de exámenes se guardan en Supabase vía la API interna de Next.
@@ -33,25 +33,25 @@ export const MODULOS: Modulo[] = [
   {
     id: "mod1",
     orden: 1,
-    titulo: "Bienvenida a ARCA",
-    objetivo: "Entender qué es ARCA, su propósito y el rol del asesor comercial.",
+    titulo: "Bienvenida a ATRIA",
+    objetivo: "Entender qué es ATRIA, su propósito y el rol del asesor comercial.",
     nivel: "Principiante",
     tiempo: "15 min",
     obligatorio: true,
     video: "Aquí va un video de bienvenida",
     intro:
-      "Bienvenido al programa de vendedores de ARCA. Antes de vender, hay que creer en lo que se vende y entender a quién ayuda. En este módulo conocerás la razón de ser de ARCA y qué se espera de ti.",
+      "Bienvenido al programa de vendedores de ATRIA. Antes de vender, hay que creer en lo que se vende y entender a quién ayuda. En este módulo conocerás la razón de ser de ATRIA y qué se espera de ti.",
     secciones: [
       {
-        h: "Qué es ARCA",
+        h: "Qué es ATRIA",
         p: [
-          "ARCA es un sistema integral de gestión comercial para pequeñas y medianas empresas de Latinoamérica. Une el punto de venta, el inventario y la contabilidad en una sola plataforma.",
+          "ATRIA es un sistema integral de gestión comercial para pequeñas y medianas empresas de Latinoamérica. Une el punto de venta, el inventario, la contabilidad y, para restaurantes, el control de pedidos y menú en una sola plataforma.",
           "La idea central: cada evento del negocio (venta, compra, gasto) genera automáticamente su asiento contable. El dueño deja de cuadrar todo a mano.",
         ],
       },
       {
         h: "Misión, visión y valores",
-        p: ["Ayudamos a que negocios reales dejen atrás el desorden de Excel y los sistemas desconectados, con tecnología simple y potente."],
+        p: ["Ayudamos a que comercios y restaurantes dejen atrás el desorden de Excel, cuadernos y sistemas desconectados, con tecnología simple y potente."],
         lista: [
           "Misión: dar control y claridad a cada comercio.",
           "Visión: ser el sistema operativo del comercio en Latinoamérica.",
@@ -60,7 +60,7 @@ export const MODULOS: Modulo[] = [
       },
       {
         h: "Qué se espera de ti",
-        p: ["El asesor es la cara de ARCA. Tu trabajo es entender al negocio, mostrar cómo ARCA lo ordena y acompañar la decisión con ética."],
+        p: ["El asesor es la cara de ATRIA. Tu trabajo es entender al negocio, mostrar cómo ATRIA lo ordena y acompañar la decisión con ética."],
         lista: [
           "Representar la marca con honestidad.",
           "Aprender el producto a fondo.",
@@ -70,12 +70,13 @@ export const MODULOS: Modulo[] = [
       },
     ],
     resumen: [
-      "ARCA integra POS, inventario y contabilidad automática.",
+      "ATRIA integra POS, inventario, contabilidad automática y operación para restaurantes.",
       "El asesor es el puente entre el negocio y la solución.",
       "La ética y el registro correcto son la base del programa.",
     ],
     checklist: [
-      "Sé explicar en una frase qué es ARCA.",
+      "Sé explicar en una frase qué es ATRIA.",
+      "Sé mencionar cuándo aplica a un comercio y cuándo a un restaurante.",
       "Conozco la misión y los valores.",
       "Entiendo qué se espera de mí como asesor.",
     ],
@@ -85,18 +86,26 @@ export const MODULOS: Modulo[] = [
     id: "mod2",
     orden: 2,
     titulo: "Dominio del producto",
-    objetivo: "Conocer cada módulo real de ARCA y conectarlo con un problema del cliente.",
+    objetivo: "Conocer cada módulo real de ATRIA y conectarlo con un problema del cliente.",
     nivel: "Principiante",
     tiempo: "35 min",
     obligatorio: true,
-    video: "Aquí va un video demostrativo de ARCA",
+    video: "Aquí va un video demostrativo de ATRIA",
     intro:
-      "No se vende lo que no se entiende. Aquí verás cada módulo de ARCA: qué hace, qué problema resuelve y qué tipo de cliente lo necesita.",
+      "No se vende lo que no se entiende. Aquí verás cada módulo de ATRIA: qué hace, qué problema resuelve y qué tipo de cliente lo necesita.",
     secciones: [
       {
         h: "Punto de venta (POS)",
         p: ["Vende rápido, aplica descuentos, cobra mixto y sigue operando cuando el internet falla."],
         lista: ["Problema que resuelve: ventas lentas y sin registro.", "Cliente típico: cualquier comercio con caja."],
+      },
+      {
+        h: "Pedidos y menú para restaurantes",
+        p: ["Organiza el menú, toma pedidos, conecta la venta con caja y ayuda a mantener control del consumo de inventario."],
+        lista: [
+          "Problema que resuelve: pedidos perdidos, cobros desordenados y poca claridad de productos vendidos.",
+          "Cliente típico: restaurante, cafetería, comida rápida, bar o cocina con pedidos frecuentes.",
+        ],
       },
       {
         h: "Inventario",
@@ -114,8 +123,9 @@ export const MODULOS: Modulo[] = [
       },
     ],
     ejemplos: [
-      "Una ferretería con dos locales no sabe cuál es más rentable → ARCA multi-sucursal + reportes.",
+      "Una ferretería con dos locales no sabe cuál es más rentable → ATRIA multi-sucursal + reportes.",
       "Una farmacia pierde productos vencidos → control de lotes y vencimientos del inventario.",
+      "Un restaurante pierde control entre pedidos, caja e insumos → pedidos y menú conectados con inventario y reportes.",
     ],
     erroresComunes: [
       "Mostrar TODOS los módulos aunque el cliente solo necesite dos.",
@@ -128,17 +138,18 @@ export const MODULOS: Modulo[] = [
     ],
     checklist: [
       "Puedo describir cada módulo en una frase.",
+      "Puedo explicar pedidos y menú para restaurantes.",
       "Sé qué problema resuelve cada uno.",
       "Puedo dar un ejemplo por módulo.",
     ],
-    recursos: ["Ficha de producto (PDF)", "Comparativa Excel vs ARCA"],
+    recursos: ["Ficha de producto (PDF)", "Comparativa Excel vs ATRIA"],
     tieneExamen: true,
   },
   {
     id: "mod3",
     orden: 3,
     titulo: "Cliente ideal",
-    objetivo: "Identificar qué negocios necesitan ARCA y cuáles no califican.",
+    objetivo: "Identificar qué negocios necesitan ATRIA y cuáles no califican.",
     nivel: "Principiante",
     tiempo: "25 min",
     obligatorio: true,
@@ -156,7 +167,7 @@ export const MODULOS: Modulo[] = [
       },
       {
         h: "Señales de oportunidad",
-        p: ["Escucha frases como: 'no sé cuánto gané', 'se me pierde mercadería', 'la contadora va atrasada', 'tengo todo en cuadernos'."],
+        p: ["Escucha frases como: 'no sé cuánto gané', 'se me pierde mercadería', 'la contadora va atrasada', 'tengo todo en cuadernos', 'los pedidos se confunden' o 'no sé qué platos dejan más margen'."],
       },
       {
         h: "Perfiles de ejemplo",
@@ -164,6 +175,8 @@ export const MODULOS: Modulo[] = [
         lista: [
           "Ferretería con mucho SKU y descontrol de stock.",
           "Farmacia con vencimientos y lotes.",
+          "Restaurante con pedidos, menú, caja e inventario de insumos.",
+          "Cafetería con ventas rápidas y productos preparados.",
           "Distribuidora con varias rutas.",
           "Tienda con 2-3 sucursales.",
           "Negocio con empleados y cajas.",
@@ -180,7 +193,7 @@ export const MODULOS: Modulo[] = [
       },
     ],
     resumen: [
-      "El cliente ideal tiene inventario/empleados y desorden.",
+      "El cliente ideal tiene inventario, empleados, pedidos o desorden operativo.",
       "Las señales de oportunidad se escuchan, no se adivinan.",
       "Descalificar a tiempo también es vender mejor.",
     ],
@@ -267,7 +280,8 @@ export const MODULOS: Modulo[] = [
       },
     ],
     ejemplos: [
-      "WhatsApp: 'Hola, soy [nombre], asesor de ARCA. Ayudamos a ferreterías como la suya a controlar inventario y ventas en un solo lugar. ¿Le parece si le muestro en 10 min cómo funciona?'",
+      "WhatsApp comercio: 'Hola, soy [nombre], asesor de ATRIA. Ayudamos a ferreterías como la suya a controlar inventario y ventas en un solo lugar. ¿Le parece si le muestro en 10 min cómo funciona?'",
+      "WhatsApp restaurante: 'Hola, soy [nombre], asesor de ATRIA. Ayudamos a restaurantes a ordenar pedidos, menú, caja e inventario. ¿Le muestro en 10 min un flujo sencillo?'",
     ],
     erroresComunes: ["Copiar-pegar el mismo mensaje a 200 números.", "Prometer cosas para lograr la reunión."],
     resumen: ["Construye una lista investigada.", "Personaliza el primer contacto.", "Nunca spam ni engaño."],
@@ -337,7 +351,7 @@ export const MODULOS: Modulo[] = [
       },
       {
         h: "Demos de 15, 30 y 45 minutos",
-        p: ["15 min: solo el dolor principal. 30 min: dolor + contabilidad automática. 45 min: recorrido completo con reportes."],
+        p: ["15 min: solo el dolor principal. 30 min: dolor + contabilidad automática. 45 min: recorrido completo con reportes. En restaurantes, el flujo mínimo debe mostrar menú, pedido, cobro y efecto operativo."],
       },
     ],
     erroresComunes: ["Demo genérica sin diagnóstico.", "No definir el siguiente paso al terminar."],
@@ -581,9 +595,9 @@ export const MODULOS: Modulo[] = [
     id: "mod15",
     orden: 15,
     titulo: "Examen final y certificación",
-    objetivo: "Demostrar dominio integral para certificarte como asesor ARCA.",
+    objetivo: "Demostrar dominio integral para certificarte como asesor ATRIA.",
     nivel: "Avanzado",
-    tiempo: "40 min",
+    tiempo: "Sin límite",
     obligatorio: true,
     intro:
       "Este examen integra todo: producto, cliente ideal, prospección, diagnóstico, demo, objeciones, seguimiento, cierre, CRM, ética y comisiones. Prepárate y da lo mejor.",

@@ -1,48 +1,46 @@
-# Despliegue y conexión con Apps Script
+# Despliegue y conexión con Supabase
 
-## Parte A — Backend (Google Apps Script)
+## Backend
 
-1. **Crea una Hoja de Cálculo de Google** nueva (será tu base de datos).
-2. Menú **Extensiones → Apps Script**. Borra el código por defecto.
-3. Abre [`script.txt`](../script.txt), copia **todo** su contenido y pégalo en el editor. Guarda.
-4. Vuelve a la hoja y **recárgala**: aparecerá el menú **ARCA**.
-5. **ARCA → 1. Inicializar / reparar hojas.** Crea las 26 hojas con encabezados y los valores de configuración por defecto.
-6. **ARCA → 2. Configurar secretos y admin.** Genera el `PEPPER` (hash de contraseñas) y crea el usuario administrador (te pedirá correo y contraseña).
-7. *(Opcional)* **ARCA → 3. Cargar datos de prueba.** Carga módulos y preguntas base para probar exámenes de inmediato.
-8. **Publicar la Web App:**
-   - **Implementar → Nueva implementación → Tipo: Aplicación web.**
-   - **Ejecutar como:** *Yo (tu cuenta)*.
-   - **Quién tiene acceso:** *Cualquier usuario*.
-   - Implementar y **autorizar** los permisos.
-   - Copia la **URL** que termina en `/exec`.
+1. Crea un proyecto en Supabase.
+2. Copia las variables a `.env.local`:
 
-> Cada vez que edites `script.txt`, crea una **nueva versión** de la implementación (Implementar → Gestionar implementaciones → editar → Nueva versión) para que los cambios tengan efecto.
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   SUPABASE_SERVICE_ROLE_KEY=...
+   DATABASE_URL=...
+   AUTH_PEPPER=...
+   ```
 
-### Propiedades del script (secretos)
-Se guardan en **Configuración del proyecto → Propiedades del script** (el menú las crea/gestiona por ti):
-- `SPREADSHEET_ID` — se fija automáticamente al inicializar.
-- `PEPPER` — pimienta global del hash (se genera automáticamente).
-- `API_SHARED_TOKEN` — opcional, para integraciones administrativas.
+3. Ejecuta:
 
-## Parte B — Frontend (Next.js)
+   ```bash
+   npm install
+   npm run db:setup
+   npm run db:seed
+   ```
+
+`db:setup` crea/verifica tablas, índices, configuración base y RLS. `db:seed` carga las preguntas por defecto para todos los módulos y el examen final.
+
+## Frontend local
 
 1. `npm install`
 2. `cp .env.example .env.local`
-3. Edita `.env.local` y pega la URL del paso A.8:
-   ```
-   NEXT_PUBLIC_APPS_SCRIPT_URL=https://script.google.com/macros/s/XXXX/exec
-   NEXT_PUBLIC_WHATSAPP_SOPORTE=50500000000
-   ```
-4. `npm run dev` y abre http://localhost:3000
+3. Edita `.env.local` con tus credenciales de Supabase.
+4. `npm run dev`
+5. Abre `http://localhost:3000`
 
-### Verificar la conexión
-Con el backend publicado, el registro, login y demás acciones deben responder. Si ves el error *“Backend no configurado”*, falta `NEXT_PUBLIC_APPS_SCRIPT_URL`. Si ves *“No se pudo conectar”*, revisa que la Web App esté publicada como *Cualquier usuario* y que la URL termine en `/exec`.
+## Producción
 
-## Despliegue en producción (Vercel)
+1. Sube el repo a GitHub.
+2. Importa el proyecto en Vercel o tu plataforma Next.js.
+3. Define las variables de entorno de Supabase y `AUTH_PEPPER`.
+4. Ejecuta `npm run db:setup` y `npm run db:seed` contra la base de producción.
+5. Despliega.
 
-1. Sube el repo a GitHub e impórtalo en Vercel.
-2. Define las variables `NEXT_PUBLIC_*` en Vercel (Project → Settings → Environment Variables).
-3. Deploy. El frontend es estático/SSR; el backend sigue en Apps Script.
+## Verificación rápida
 
-## Notas de CORS
-El cliente (`lib/api.ts`) envía los POST como `text/plain` para evitar el *preflight* CORS que Apps Script no maneja bien. No cambies esto sin probar.
+- `/api/backend` debe responder a la acción `ping` con backend `supabase`.
+- El registro, login, academia, exámenes, simulador, certificación, CRM y comisiones deben operar mediante `/api/backend`.
+- La `service_role` no debe aparecer en el navegador ni en bundles cliente.

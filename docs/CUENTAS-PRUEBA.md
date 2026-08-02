@@ -1,27 +1,27 @@
 # Cuentas y roles de prueba
 
-Estas cuentas se crean con **ARCA → 3. Cargar datos de prueba** (función `seedDemoComercial` en `script.txt`). No uses datos personales reales.
+Usa estos datos como referencia cuando cargues cuentas demo en Supabase o desde el panel admin. No uses datos personales reales.
 
-> ⚠️ Cambia estas contraseñas antes de cualquier uso real. Son solo para pruebas locales.
+> Cambia estas contraseñas antes de cualquier uso real. Son solo para pruebas locales.
 
 | Rol | Correo | Contraseña | Notas |
 |---|---|---|---|
-| **Administrador** | *(el que definiste)* | *(la que definiste)* | Se crea en **ARCA → 2. Configurar secretos y admin**. |
-| **Vendedor** | `vendedor.demo@arca.app` | `Vendedor123!` | Certificado, con prospectos, 2 ventas aprobadas y comisiones. |
-| **Candidato** | `candidato.demo@arca.app` | `Candidato123!` | En capacitación (40% de progreso). |
+| **Administrador** | *(el que definiste)* | *(la que definiste)* | Se crea desde Supabase o desde un flujo administrativo interno. |
+| **Vendedor** | `vendedor.demo@atria.app` | `Vendedor123!` | Certificado, con prospectos, 2 ventas aprobadas y comisiones. |
+| **Candidato** | `candidato.demo@atria.app` | `Candidato123!` | En capacitación (40% de progreso). |
 
 ## Roles del sistema
 
-- **candidato** — puede acceder a la academia, exámenes, simulador y certificación. Al certificarse pasa a **vendedor**.
-- **vendedor** — accede al panel: CRM, prospectos, ventas, comisiones, academia y recursos.
-- **admin** — accede al panel administrativo: candidatos, vendedores, validación de ventas, comisiones, chatbot y configuración. Un admin también puede entrar a las vistas de otros roles.
+- **candidato**: puede acceder a la academia, exámenes, simulador y certificación. Al certificarse pasa a **vendedor**.
+- **vendedor**: accede al panel: CRM, prospectos, ventas, comisiones, academia y recursos.
+- **admin**: accede al panel administrativo: candidatos, vendedores, validación de ventas, comisiones, chatbot y configuración. Un admin también puede entrar a las vistas de otros roles.
 
 ## Datos demo incluidos
 
 - 2 candidatos (1 certificado como vendedor, 1 en capacitación).
 - 1 vendedor certificado con código y referido.
 - 5 prospectos en distintas etapas.
-- 3 ventas (2 aprobadas → generan comisión, 1 pendiente).
+- 3 ventas (2 aprobadas -> generan comisión, 1 pendiente).
 - Comisiones calculadas automáticamente (15% / 5%).
 - 3 logs de chatbot y 2 preguntas no resueltas.
 - 15 módulos, banco de preguntas por módulo y examen final.

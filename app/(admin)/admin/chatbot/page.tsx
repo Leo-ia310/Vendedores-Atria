@@ -37,7 +37,7 @@ export default function AdminChatbot() {
     <>
       <PageHeader
         titulo="Chatbot"
-        descripcion="Preguntas que el Asistente Comercial ARCA no pudo responder. Agrega respuestas para mejorar la base de conocimiento."
+        descripcion="Preguntas que el Asistente Comercial ATRIA no pudo responder. Agrega respuestas para mejorar la base de conocimiento."
       />
 
       {cargando ? (

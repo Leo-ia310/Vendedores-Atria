@@ -25,6 +25,7 @@ import {
   Wallet,
   Gift,
   Check,
+  Utensils,
 } from "lucide-react";
 import { FAQ } from "@/components/marketing/FAQ";
 import { PLANES_EJEMPLO, ejemploComision, COMISIONES } from "@/lib/config";
@@ -32,6 +33,7 @@ import { formatearUSD } from "@/lib/utils";
 
 const modulosArca = [
   { icon: ShoppingCart, titulo: "Punto de venta", texto: "Vende rápido, cobra mixto y sigue operando aunque el internet falle." },
+  { icon: Utensils, titulo: "Pedidos y menú", texto: "Gestiona menú, pedidos, mesas y cobros para restaurantes con operación diaria." },
   { icon: Package, titulo: "Inventario vivo", texto: "Controla existencias, lotes, vencimientos y movimientos entre sucursales." },
   { icon: BookOpen, titulo: "Contabilidad automática", texto: "Cada venta, compra o gasto genera su asiento contable sin volver a digitar." },
   { icon: Building2, titulo: "Multi-sucursal", texto: "Compara tiendas, consolida resultados y mueve inventario con trazabilidad." },
@@ -43,7 +45,7 @@ const tareasVendedor = [
   { icon: Search, t: "Buscar negocios potenciales" },
   { icon: Target, t: "Identificar necesidades reales" },
   { icon: UserPlus, t: "Registrar prospectos en el CRM" },
-  { icon: Presentation, t: "Explicar ARCA y coordinar demos" },
+  { icon: Presentation, t: "Explicar ATRIA y coordinar demos" },
   { icon: Handshake, t: "Dar seguimiento y cerrar ventas" },
   { icon: ShieldCheck, t: "Cumplir las políticas comerciales" },
 ];
@@ -132,14 +134,15 @@ export default function LandingReclutamiento() {
           <div className="mx-auto max-w-4xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[12px] font-medium text-white/75">
               <GraduationCap size={14} className="text-[#c4b5fd]" />
-              Academia Comercial ARCA · Programa de vendedores
+              Academia Comercial ATRIA · Programa de vendedores
             </span>
             <h1 className="mx-auto mt-6 max-w-4xl text-[40px] font-semibold leading-[1.05] text-white sm:text-[58px]">
-              Conviértete en <span className="grad-text">asesor comercial certificado</span> de ARCA
+              Conviértete en <span className="grad-text">asesor comercial certificado</span> de ATRIA
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-8 text-white/68">
               Aprende desde cero a identificar oportunidades, presentar soluciones, realizar
-              demostraciones, manejar objeciones y cerrar ventas de forma profesional.
+              demostraciones, manejar objeciones y cerrar ventas de forma profesional para
+              comercios y restaurantes.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
@@ -164,16 +167,17 @@ export default function LandingReclutamiento() {
         </div>
       </section>
 
-      {/* QUÉ ES ARCA */}
+      {/* QUÉ ES ATRIA */}
       <Section
         id="que-es"
-        eyebrow="Qué es ARCA"
+        eyebrow="Qué es ATRIA"
         titulo={<>El sistema operativo del comercio que vas a representar</>}
       >
         <p className="mx-auto mb-10 max-w-3xl text-center text-[16px] leading-7 text-white/65">
-          ARCA es un sistema integral para administrar un negocio: reemplaza Excel y los sistemas
-          desconectados con una sola plataforma que conecta el punto de venta, el inventario y la
-          contabilidad. Cada venta genera automáticamente su asiento contable de partida doble.
+          ATRIA es un sistema integral para administrar un negocio: reemplaza Excel y los sistemas
+          desconectados con una sola plataforma que conecta el punto de venta, pedidos y menú para
+          restaurantes, inventario, reportes y contabilidad. Cada venta genera automáticamente su
+          asiento contable de partida doble.
         </p>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {modulosArca.map(({ icon: Icon, titulo, texto }) => (
@@ -192,7 +196,7 @@ export default function LandingReclutamiento() {
       </Section>
 
       {/* QUÉ HARÁ EL VENDEDOR */}
-      <Section eyebrow="Tu rol" titulo="Qué hace un asesor comercial de ARCA">
+      <Section eyebrow="Tu rol" titulo="Qué hace un asesor comercial de ATRIA">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tareasVendedor.map(({ icon: Icon, t }) => (
             <div key={t} className="flex items-center gap-3 rounded-[12px] border border-white/12 bg-[#1b0d31]/80 p-5">
@@ -226,7 +230,8 @@ export default function LandingReclutamiento() {
           <div className="rounded-[14px] border border-white/12 bg-[#1b0d31]/80 p-6">
             <ul className="space-y-3 text-[14px] text-white/75">
               {[
-                "Dominio del producto ARCA módulo por módulo",
+                "Dominio del producto ATRIA módulo por módulo",
+                "Control de pedidos y menú para restaurantes",
                 "Perfil de cliente ideal y señales de oportunidad",
                 "Fundamentos de venta consultiva y escucha activa",
                 "Prospección ética con guiones para WhatsApp, correo y llamada",
@@ -279,7 +284,7 @@ export default function LandingReclutamiento() {
 
         <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-[14px] border border-white/12 bg-[#150826]/70">
           <div className="grid grid-cols-3 border-b border-white/10 px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-white/45">
-            <span>Plan ARCA</span>
+            <span>Plan ATRIA</span>
             <span className="text-right">Tu primera venta</span>
             <span className="text-right">Cada renovación</span>
           </div>
@@ -341,7 +346,7 @@ export default function LandingReclutamiento() {
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-white/70">
             Regístrate, aprende a tu ritmo, certifícate y comienza a generar comisiones ayudando a
-            negocios reales a ordenarse con ARCA.
+            negocios reales a ordenarse con ATRIA.
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/registro" className="arca-btn arca-btn-lg bg-[linear-gradient(135deg,#7c3aed,#2563eb)] text-white shadow-[0_18px_40px_rgba(37,99,235,0.28)] hover:-translate-y-0.5 hover:brightness-110">

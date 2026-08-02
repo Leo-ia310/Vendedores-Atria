@@ -2,7 +2,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Logo de ARCA + submarca del programa.
+ * Logo de ATRIA + submarca del programa.
  * `variant="mark"` muestra solo el símbolo; `full` incluye el wordmark.
  */
 export function Logo({
@@ -23,7 +23,7 @@ export function Logo({
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
         src="/logo-arca-mark.png"
-        alt="ARCA"
+        alt="ATRIA"
         width={2248}
         height={1860}
         priority={eager}
@@ -33,7 +33,7 @@ export function Logo({
       {variant === "full" && (
         <span className="flex flex-col leading-none">
           <span className={cn("text-[17px] font-semibold tracking-[-0.02em]", texto)}>
-            ARCA
+            ATRIA
           </span>
           <span className={cn("text-[9.5px] font-medium uppercase tracking-[0.14em]", sub)}>
             Academia comercial

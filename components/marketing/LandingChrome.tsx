@@ -138,11 +138,11 @@ export function LandingFooter() {
           <div>
             <Logo />
             <p className="mt-6 max-w-md text-[16px] font-medium leading-7 text-white/85">
-              Formamos, certificamos y potenciamos a los asesores comerciales de ARCA.
+              Formamos, certificamos y potenciamos a los asesores comerciales de ATRIA.
             </p>
             <p className="mt-3 max-w-md text-[13px] leading-6 text-white/50">
               Capacitación gratuita, certificación oficial y comisiones recurrentes por cada
-              negocio que ayudas a ordenar con ARCA.
+              negocio que ayudas a ordenar con ATRIA.
             </p>
             <div className="mt-7">
               <p className="text-label text-white/35">Síguenos</p>
@@ -196,7 +196,7 @@ export function LandingFooter() {
 
         <div className="h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent)]" />
         <div className="flex flex-col gap-3 py-7 text-[12px] text-white/38 sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} ARCA · Academia Comercial. Todos los derechos reservados.</span>
+          <span>© {new Date().getFullYear()} ATRIA · Academia Comercial. Todos los derechos reservados.</span>
           <a href={`https://wa.me/${MARCA.whatsappSoporte}`} className="hover:text-white" target="_blank" rel="noreferrer">
             WhatsApp de soporte
           </a>

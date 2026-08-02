@@ -266,12 +266,12 @@ create index if not exists "idx_Ventas_SellerId" on public."Ventas" ("SellerId")
 create index if not exists "idx_Comisiones_SellerId" on public."Comisiones" ("SellerId");
 
 insert into public."Configuracion" ("Clave", "Valor", "Descripcion", "FechaActualizacion") values
-  ('comision_primera_venta', '0.15', 'Porcentaje de comision sobre la primera venta', now()::text),
-  ('comision_renovacion', '0.05', 'Porcentaje de comision sobre renovaciones', now()::text),
-  ('puntaje_minimo', '85', 'Puntaje minimo para aprobar y certificar', now()::text),
-  ('intentos_por_examen', '3', 'Intentos permitidos por examen de modulo', now()::text),
-  ('intentos_examen_final', '2', 'Intentos permitidos en el examen final', now()::text),
-  ('version_terminos', '2026.08', 'Version vigente de terminos y condiciones', now()::text),
+  ('comision_primera_venta', '0.15', 'Porcentaje de comisión sobre la primera venta', now()::text),
+  ('comision_renovacion', '0.05', 'Porcentaje de comisión sobre renovaciones', now()::text),
+  ('puntaje_minimo', '85', 'Puntaje mínimo para aprobar y certificar', now()::text),
+  ('intentos_por_examen', '3', 'Intentos permitidos por examen de módulo', now()::text),
+  ('intentos_examen_final', '0', 'El examen final no tiene límite de intentos', now()::text),
+  ('version_terminos', '2026.08', 'Versión vigente de términos y condiciones', now()::text),
   ('moneda', 'USD', 'Moneda base de comisiones', now()::text),
   ('whatsapp_soporte', '50500000000', 'WhatsApp de soporte', now()::text),
   ('mantenimiento', '0', '1 = modo mantenimiento activo', now()::text)

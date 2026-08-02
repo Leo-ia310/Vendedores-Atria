@@ -1,5 +1,5 @@
 /**
- * Base de conocimiento del Asistente Comercial ARCA.
+ * Base de conocimiento del Asistente Comercial ATRIA.
  *
  * EDITABLE: agrega o modifica intenciones sin tocar el motor. Cada intención se
  * evalúa por puntaje (ver engine.ts). Mantén las respuestas honestas: no inventes
@@ -20,7 +20,7 @@ export type Intencion = {
 
 export const CATEGORIAS = [
   { id: "general", label: "General" },
-  { id: "producto", label: "Producto ARCA" },
+  { id: "producto", label: "Producto ATRIA" },
   { id: "academia", label: "Academia" },
   { id: "comisiones", label: "Comisiones" },
   { id: "crm", label: "CRM y ventas" },
@@ -29,7 +29,7 @@ export const CATEGORIAS = [
 ];
 
 export const SALUDOS_QUICK = [
-  "¿Qué es ARCA?",
+  "¿Qué es ATRIA?",
   "¿Cómo funcionan las comisiones?",
   "¿Cómo me certifico?",
   "Tengo un problema para entrar",
@@ -42,7 +42,7 @@ export const KNOWLEDGE: Intencion[] = [
     categoria: "general",
     prioridad: 90,
     keywords: ["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "que tal", "saludos", "hey"],
-    respuesta: "¡Hola! Soy el Asistente Comercial ARCA. Puedo ayudarte con el producto, la academia, las comisiones, tu cuenta y más. ¿Qué necesitas?",
+    respuesta: "¡Hola! Soy el Asistente Comercial ATRIA. Puedo ayudarte con el producto, la academia, las comisiones, tu cuenta y más. ¿Qué necesitas?",
     quickReplies: SALUDOS_QUICK,
   },
   {
@@ -74,42 +74,51 @@ export const KNOWLEDGE: Intencion[] = [
     id: "que_es_arca",
     categoria: "producto",
     prioridad: 60,
-    keywords: ["que es arca", "que es el producto", "que vendo", "que es el sistema", "de que trata arca", "explicame arca"],
+    keywords: ["que es atria", "que es arca", "que es el producto", "que vendo", "que es el sistema", "de que trata atria", "de que trata arca", "explicame atria", "explicame arca"],
     sinonimos: ["que es", "producto"],
-    respuesta: "ARCA es un sistema integral de gestión comercial para PYMEs de Latinoamérica: une el punto de venta, el inventario y la contabilidad en una sola plataforma. Cada venta, compra o gasto genera automáticamente su asiento contable.",
-    quickReplies: ["¿Qué módulos tiene?", "¿Qué planes hay?", "¿Quién es el cliente ideal?"],
+    respuesta: "ATRIA es un sistema integral de gestión comercial para PYMEs de Latinoamérica: une punto de venta, inventario, reportes, contabilidad y, para restaurantes, control de menú y pedidos. La venta se explica conectando cada función con un problema real del negocio.",
+    quickReplies: ["¿Qué módulos tiene?", "¿Sirve para restaurantes?", "¿Quién es el cliente ideal?"],
   },
   {
     id: "modulos",
     categoria: "producto",
     prioridad: 60,
-    keywords: ["que modulos", "modulos de arca", "funciones de arca", "que hace arca", "caracteristicas"],
+    keywords: ["que modulos", "modulos de atria", "modulos de arca", "funciones de atria", "funciones de arca", "que hace atria", "que hace arca", "caracteristicas"],
     sinonimos: ["modulos", "funciones"],
-    respuesta: "ARCA incluye: Punto de venta (POS), Inventario (lotes, vencimientos, multi-almacén), Facturación, Contabilidad automática, Multi-sucursal y Reportes. Conecta cada función con un problema real del cliente al presentarlo.",
-    quickReplies: ["¿Qué es la contabilidad automática?", "¿Cómo hago una demo?"],
+    respuesta: "ATRIA incluye: Punto de venta (POS), pedidos y menú para restaurantes, Inventario (lotes, vencimientos, multi-almacén), Facturación, Contabilidad automática, Multi-sucursal y Reportes. Conecta cada función con un problema real del cliente al presentarlo.",
+    quickReplies: ["¿Sirve para restaurantes?", "¿Qué es la contabilidad automática?", "¿Cómo hago una demo?"],
+  },
+  {
+    id: "restaurantes",
+    categoria: "producto",
+    prioridad: 58,
+    keywords: ["restaurante", "restaurantes", "menu", "menú", "pedido", "pedidos", "mesa", "mesas", "cafeteria", "cafetería", "bar", "comida"],
+    sinonimos: ["restaurante", "menu", "pedido"],
+    respuesta: "Sí. Para restaurantes, ATRIA se presenta como una forma de ordenar menú, pedidos, cobros, caja, inventario de insumos y reportes. La demo debe mostrar el flujo diario: tomar pedido, cobrar, registrar la venta y revisar información útil para decidir.",
+    quickReplies: ["Cliente ideal", "Cómo hacer una demo", "Manejo de objeciones"],
   },
   {
     id: "cliente_ideal",
     categoria: "producto",
     prioridad: 55,
-    keywords: ["cliente ideal", "a quien le vendo", "quien necesita arca", "que negocios", "tipo de cliente"],
-    respuesta: "El cliente ideal tiene inventario y/o empleados, usa Excel o un sistema obsoleto, no tiene reportes claros y realiza procesos manuales. Ejemplos: ferreterías, farmacias, distribuidoras, tiendas con varias sucursales.",
+    keywords: ["cliente ideal", "a quien le vendo", "quien necesita atria", "quien necesita arca", "que negocios", "tipo de cliente"],
+    respuesta: "El cliente ideal tiene inventario, empleados, pedidos o procesos manuales; usa Excel, cuadernos o un sistema obsoleto; y no tiene reportes claros. Ejemplos: ferreterías, farmacias, distribuidoras, tiendas con varias sucursales, restaurantes y cafeterías.",
     quickReplies: ["¿Cómo detecto oportunidades?", "Ver módulo de cliente ideal"],
   },
   {
     id: "planes_precios",
     categoria: "producto",
     prioridad: 60,
-    keywords: ["precio", "precios", "cuanto cuesta", "planes", "que planes", "cuanto vale", "costo de arca"],
+    keywords: ["precio", "precios", "cuanto cuesta", "planes", "que planes", "cuanto vale", "costo de atria", "costo de arca"],
     sinonimos: ["plan", "tarifa"],
-    respuesta: "ARCA tiene 3 planes: Demo (gratis), Pro ($45.99/mes) y Enterprise ($199/mes). El plan Pro es la base más común para calcular comisiones.",
+    respuesta: "ATRIA tiene 3 planes: Demo (gratis), Pro ($45.99/mes) y Enterprise ($199/mes). El plan Pro es la base más común para calcular comisiones.",
     quickReplies: ["¿Cómo son las comisiones?", "Ver ejemplo de comisión"],
   },
   {
     id: "demo",
     categoria: "producto",
     prioridad: 55,
-    keywords: ["como hago una demo", "hacer demo", "demostracion", "presentar arca", "como presento"],
+    keywords: ["como hago una demo", "hacer demo", "demostracion", "presentar atria", "presentar arca", "como presento"],
     respuesta: "Prepara la demo con lo que descubriste del cliente: muestra 2-3 módulos relevantes y conecta cada función con su problema. Hay estructuras de 15, 30 y 45 minutos en el módulo 'Presentación y demostración'.",
     quickReplies: ["Ver módulo de demostración", "Manejo de objeciones"],
   },
@@ -163,8 +172,8 @@ export const KNOWLEDGE: Intencion[] = [
     id: "examenes",
     categoria: "academia",
     prioridad: 60,
-    keywords: ["examen", "examenes", "como son los examenes", "aprobar examen", "cuantos intentos", "reprobe"],
-    respuesta: "Cada módulo tiene un examen con calificación automática. Necesitas el puntaje mínimo (por defecto 85%) para aprobar. Hay intentos limitados (configurables). Si repruebas, repasa el módulo y reintenta.",
+    keywords: ["examen", "examenes", "exámenes", "como son los examenes", "cómo son los exámenes", "aprobar examen", "cuantos intentos", "cuántos intentos", "reprobe", "reprobé"],
+    respuesta: "Cada módulo tiene un examen con calificación automática y puntaje mínimo (por defecto 85%). Los módulos normales tienen intentos configurables; el examen final se puede repetir sin límite hasta demostrar dominio.",
     quickReplies: ["¿Cómo me certifico?", "¿Qué pasa si no apruebo?"],
   },
   {

@@ -15,7 +15,7 @@ const PREGUNTAS: Array<[string, string]> = [
   ["¿Qué pasa si otro vendedor ya registró al cliente?", "La atribución respeta al primero que registró correctamente al prospecto con evidencia. Los duplicados pasan a revisión administrativa."],
   ["¿Puedo ofrecer descuentos por mi cuenta?", "No. No se permite modificar precios ni ofrecer descuentos sin autorización. Es parte del código de conducta."],
   ["¿Cómo recibo mis pagos?", "Las comisiones aprobadas se programan y se pagan según las reglas y el método acordado. Todo queda visible y transparente en tu panel."],
-  ["¿Dónde resuelvo mis dudas?", "Tienes el Asistente Comercial ARCA dentro de la plataforma y, como último recurso, el WhatsApp de soporte."],
+  ["¿Dónde resuelvo mis dudas?", "Tienes el Asistente Comercial ATRIA dentro de la plataforma y, como último recurso, el WhatsApp de soporte."],
   ["¿Qué necesito para certificarme?", "Completar los módulos obligatorios, aprobar los exámenes y el final con el puntaje mínimo, hacer las simulaciones y aceptar todos los términos."],
 ];
 

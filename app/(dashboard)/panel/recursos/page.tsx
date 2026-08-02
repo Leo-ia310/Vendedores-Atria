@@ -5,13 +5,13 @@ import { PageHeader } from "@/components/app/PageHeader";
 
 const RECURSOS = [
   { icon: BookMarked, titulo: "Manual del vendedor", desc: "Guía completa del programa y el rol." },
-  { icon: Presentation, titulo: "Presentación comercial", desc: "Deck para presentar ARCA a prospectos." },
+  { icon: Presentation, titulo: "Presentación comercial", desc: "Deck para presentar ATRIA a prospectos." },
   { icon: MessageSquareText, titulo: "Guiones de contacto", desc: "WhatsApp, correo y llamada." },
-  { icon: FileText, titulo: "Fichas de producto", desc: "Una ficha por módulo de ARCA." },
+  { icon: FileText, titulo: "Fichas de producto", desc: "Una ficha por módulo de ATRIA." },
   { icon: FileDown, titulo: "Plantillas", desc: "Lista de prospectos y seguimiento." },
   { icon: MessageSquareText, titulo: "Guía de objeciones", desc: "Respuestas recomendadas." },
   { icon: Images, titulo: "Material de redes", desc: "Piezas para publicar (próximamente)." },
-  { icon: FileText, titulo: "Comparativas", desc: "Excel vs ARCA y competidores." },
+  { icon: FileText, titulo: "Comparativas", desc: "Excel vs ATRIA y competidores." },
 ];
 
 export default function RecursosPage() {

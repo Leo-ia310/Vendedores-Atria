@@ -12,7 +12,13 @@ import {
 } from "@/lib/content/simulaciones";
 import { cn } from "@/lib/utils";
 
-type Turno = { cliente: string; eleccion: string; puntos: number; feedback?: string };
+type Turno = {
+  cliente: string;
+  eleccion: string;
+  puntos: number;
+  feedback?: string;
+  respuestaCliente?: string;
+};
 
 export function SimuladorRunner({ escenario }: { escenario: Escenario }) {
   const { toast } = useToast();
@@ -42,7 +48,14 @@ export function SimuladorRunner({ escenario }: { escenario: Escenario }) {
     setObtenido(nuevoObtenido);
     setMaxPosible(nuevoMax);
     setCriterios(nuevosCriterios);
-    setTurnos((t) => [...t, { cliente: nodo.cliente, eleccion: op.texto, puntos: op.puntos, feedback: op.feedback }]);
+    const turno: Turno = {
+      cliente: nodo.cliente,
+      eleccion: op.texto,
+      puntos: op.puntos,
+      feedback: op.feedback,
+      respuestaCliente: op.respuestaCliente,
+    };
+    setTurnos((t) => [...t, turno]);
 
     if (op.siguiente === "fin" || !escenario.nodos[op.siguiente]) {
       const puntajeFinal = nuevoMax > 0 ? Math.round((nuevoObtenido / nuevoMax) * 100) : 0;
@@ -50,7 +63,7 @@ export function SimuladorRunner({ escenario }: { escenario: Escenario }) {
       const r = await api("enviarSimulacion", {
         escenario: escenario.id,
         puntaje: puntajeFinal,
-        respuestas: [...turnos, { cliente: nodo.cliente, eleccion: op.texto, puntos: op.puntos }],
+        respuestas: [...turnos, turno],
         retroalimentacion: Array.from(nuevosCriterios).map((c) => CRITERIO_LABEL[c]).join(", "),
       });
       if (r.ok) {
@@ -82,6 +95,7 @@ export function SimuladorRunner({ escenario }: { escenario: Escenario }) {
           <div key={i} className="space-y-2">
             <Burbuja lado="cliente" texto={t.cliente} />
             <Burbuja lado="tu" texto={t.eleccion} puntos={t.puntos} />
+            {t.respuestaCliente && <Burbuja lado="cliente" texto={t.respuestaCliente} />}
             {t.feedback && (
               <p className={cn(
                 "ml-10 text-[12px]",

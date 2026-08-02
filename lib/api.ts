@@ -1,5 +1,5 @@
 const BASE_URL = "/api/backend";
-const TOKEN_KEY = "aca_arca_token";
+const TOKEN_KEY = "aca_atria_token";
 
 export type ApiResult<T = unknown> =
   | { ok: true; data: T }

@@ -49,7 +49,7 @@ export default function PanelResumen() {
     <>
       <PageHeader
         titulo="Resumen"
-        descripcion="Tu actividad como asesor comercial certificado de ARCA."
+        descripcion="Tu actividad como asesor comercial certificado de ATRIA."
       />
 
       {v && (

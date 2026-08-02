@@ -10,16 +10,16 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Academia Comercial ARCA — Conviértete en asesor certificado",
-    template: "%s · Academia Comercial ARCA",
+    default: "Academia Comercial ATRIA — Conviértete en asesor certificado",
+    template: "%s · Academia Comercial ATRIA",
   },
   description:
-    "Aprende desde cero a vender ARCA de forma profesional: prospección, demostración, manejo de objeciones y cierre. Capacitación gratuita, certificación y comisiones recurrentes.",
-  metadataBase: new URL("https://academia.arca.app"),
+    "Aprende desde cero a vender ATRIA de forma profesional: prospección, demostración, manejo de objeciones y cierre. Capacitación gratuita, certificación y comisiones recurrentes.",
+  metadataBase: new URL("https://academia.atria.app"),
   openGraph: {
-    title: "Academia Comercial ARCA",
+    title: "Academia Comercial ATRIA",
     description:
-      "Conviértete en asesor comercial certificado de ARCA. Capacitación gratuita, certificación y comisiones.",
+      "Conviértete en asesor comercial certificado de ATRIA. Capacitación gratuita, certificación y comisiones.",
     type: "website",
   },
 };

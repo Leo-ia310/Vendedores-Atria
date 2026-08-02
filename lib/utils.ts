@@ -1,5 +1,5 @@
 /**
- * Utilidades compartidas de la Academia Comercial ARCA.
+ * Utilidades compartidas de la Academia Comercial ATRIA.
  */
 
 /** Une clases condicionales sin dependencias externas (equivalente a clsx). */

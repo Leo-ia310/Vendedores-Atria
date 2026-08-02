@@ -1,14 +1,15 @@
 {
-  "name": "academia-comercial-arca",
+  "name": "academia-comercial-atria",
   "version": "0.1.0",
   "private": true,
-  "description": "Academia Comercial ARCA - Reclutamiento, capacitacion, certificacion y CRM de vendedores. Backend en Supabase.",
+  "description": "Academia Comercial ATRIA - Reclutamiento, capacitación, certificación y CRM de vendedores. Backend en Supabase.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "db:setup": "node scripts/setup-supabase.mjs",
     "db:reset": "node scripts/reset-supabase.mjs",
+    "db:seed": "node scripts/seed-default-questions.mjs",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },

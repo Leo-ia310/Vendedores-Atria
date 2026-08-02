@@ -31,8 +31,8 @@ const NAV: Record<string, string> = {
 
 const BIENVENIDA: Mensaje = {
   de: "bot",
-  texto: "¡Hola! Soy el Asistente Comercial ARCA. Estoy aquí para ayudarte con el producto, la academia, las comisiones y tu cuenta. ¿Qué necesitas?",
-  quickReplies: ["¿Qué es ARCA?", "¿Cómo funcionan las comisiones?", "¿Cómo me certifico?", "Tengo un problema para entrar"],
+  texto: "¡Hola! Soy el Asistente Comercial ATRIA. Estoy aquí para ayudarte con el producto, la academia, las comisiones y tu cuenta. ¿Qué necesitas?",
+  quickReplies: ["¿Qué es ATRIA?", "¿Cómo funcionan las comisiones?", "¿Cómo me certifico?", "Tengo un problema para entrar"],
 };
 
 export function ChatWidget() {
@@ -49,7 +49,7 @@ export function ChatWidget() {
 
   function abrirWhatsApp() {
     window.open(
-      enlaceWhatsApp(MARCA.whatsappSoporte, "Hola, necesito ayuda con la Academia Comercial ARCA."),
+      enlaceWhatsApp(MARCA.whatsappSoporte, "Hola, necesito ayuda con la Academia Comercial ATRIA."),
       "_blank",
     );
   }
@@ -120,7 +120,7 @@ export function ChatWidget() {
               <Bot size={18} />
             </span>
             <div>
-              <p className="text-[14px] font-semibold leading-tight">Asistente Comercial ARCA</p>
+              <p className="text-[14px] font-semibold leading-tight">Asistente Comercial ATRIA</p>
               <p className="text-[11px] text-white/60">Respuestas guiadas · no es un humano</p>
             </div>
           </div>

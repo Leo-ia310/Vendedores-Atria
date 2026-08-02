@@ -149,7 +149,7 @@ export async function runBackendAction<T = unknown>(
       case "adminResolverPregunta":
         return await conRol(token, "admin", async () => adminResolverPregunta(payload) as T);
       default:
-        return fail("ACCION", "Accion no reconocida.");
+        return fail("ACCION", "Acción no reconocida.");
     }
   } catch (error) {
     if (error instanceof PublicError) {
@@ -176,7 +176,7 @@ async function conSesion<T>(
   fn: (user: UserRow) => Promise<T>,
 ): Promise<BackendResult<T>> {
   const user = await verificarSesion(token);
-  if (!user) return fail("NO_AUTORIZADO", "Sesion invalida o expirada.");
+  if (!user) return fail("NO_AUTORIZADO", "Sesión inválida o expirada.");
   return ok(await fn(user));
 }
 
@@ -186,9 +186,9 @@ async function conRol<T>(
   fn: (user: UserRow) => Promise<T>,
 ): Promise<BackendResult<T>> {
   const user = await verificarSesion(token);
-  if (!user) return fail("NO_AUTORIZADO", "Sesion invalida o expirada.");
+  if (!user) return fail("NO_AUTORIZADO", "Sesión inválida o expirada.");
   if (user.Rol !== rol && user.Rol !== "admin") {
-    return fail("PROHIBIDO", "No tienes permiso para esta accion.");
+    return fail("PROHIBIDO", "No tienes permiso para esta acción.");
   }
   return ok(await fn(user));
 }
@@ -214,7 +214,7 @@ function sha256(value: string) {
 }
 
 function pepper() {
-  return process.env.AUTH_PEPPER || process.env.SUPABASE_SERVICE_ROLE_KEY || "arca-dev-pepper";
+  return process.env.AUTH_PEPPER || process.env.SUPABASE_SERVICE_ROLE_KEY || "atria-dev-pepper";
 }
 
 function hashPassword(password: string, salt: string) {
@@ -371,7 +371,7 @@ async function crearSesion(userId: string, ctx: BackendContext) {
 async function crearUsuario(email: string, password: string, rol: string, candidateId: string, debeCambiar: boolean) {
   const normalized = email.toLowerCase().trim();
   const existing = await rowBy("Usuarios", "Email", normalized);
-  if (existing) throw new Error("El correo ya esta registrado.");
+  if (existing) throw new Error("El correo ya está registrado.");
   const salt = token(16);
   const user: UserRow = {
     UserId: id("usr"),
@@ -394,14 +394,14 @@ async function crearUsuario(email: string, password: string, rol: string, candid
 async function login(payload: Payload, ctx: BackendContext) {
   const email = String(payload.email || "").toLowerCase().trim();
   const password = String(payload.password || "");
-  if (!email || !password) throw new PublicError("DATOS", "Correo y contrasena son obligatorios.");
+  if (!email || !password) throw new PublicError("DATOS", "Correo y contraseña son obligatorios.");
 
   const user = await rowBy<UserRow>("Usuarios", "Email", email);
-  if (!user) throw new PublicError("CREDENCIALES", "Correo o contrasena incorrectos.");
+  if (!user) throw new PublicError("CREDENCIALES", "Correo o contraseña incorrectos.");
   if (user.BloqueadoHasta && new Date(user.BloqueadoHasta).getTime() > Date.now()) {
-    throw new PublicError("BLOQUEADO", "Cuenta bloqueada temporalmente. Intenta mas tarde.");
+    throw new PublicError("BLOQUEADO", "Cuenta bloqueada temporalmente. Intenta más tarde.");
   }
-  if (user.Estado !== "activo") throw new PublicError("INACTIVO", "Tu cuenta no esta activa. Contacta a soporte.");
+  if (user.Estado !== "activo") throw new PublicError("INACTIVO", "Tu cuenta no está activa. Contacta a soporte.");
 
   if (hashPassword(password, user.Salt) !== user.PasswordHash) {
     const attempts = Number(user.IntentosFallidos || 0) + 1;
@@ -412,7 +412,7 @@ async function login(payload: Payload, ctx: BackendContext) {
     }
     await updateRows("Usuarios", "UserId", user.UserId, changes);
     await auditar(user.UserId, "login_fallido", "usuario", user.UserId, null, null, ctx.ip);
-    throw new PublicError("CREDENCIALES", "Correo o contrasena incorrectos.");
+    throw new PublicError("CREDENCIALES", "Correo o contraseña incorrectos.");
   }
 
   await updateRows("Usuarios", "UserId", user.UserId, {
@@ -440,9 +440,9 @@ async function logout(rawToken: string | null) {
 async function cambiarPassword(user: UserRow, payload: Payload) {
   const actual = String(payload.actual || "");
   const nueva = String(payload.nueva || "");
-  if (nueva.length < 8) throw new PublicError("DEBIL", "La nueva contrasena debe tener al menos 8 caracteres.");
+  if (nueva.length < 8) throw new PublicError("DEBIL", "La nueva contraseña debe tener al menos 8 caracteres.");
   if (String(user.DebeCambiarPassword) !== "true" && hashPassword(actual, user.Salt) !== user.PasswordHash) {
-    throw new PublicError("CREDENCIALES", "La contrasena actual es incorrecta.");
+    throw new PublicError("CREDENCIALES", "La contraseña actual es incorrecta.");
   }
   const salt = token(16);
   await updateRows("Usuarios", "UserId", user.UserId, {
@@ -468,7 +468,7 @@ async function solicitarRecuperacion(payload: Payload, ctx: BackendContext) {
       Utilizado: "false",
     });
     await auditar(user.UserId, "solicitud_recuperacion", "usuario", user.UserId, null, null, ctx.ip);
-    console.info(`Codigo de recuperacion generado para ${email}. Configura un proveedor de email para enviarlo.`);
+    console.info(`Código de recuperación generado para ${email}. Configura un proveedor de email para enviarlo.`);
   }
   return { enviado: true };
 }
@@ -476,10 +476,10 @@ async function solicitarRecuperacion(payload: Payload, ctx: BackendContext) {
 async function restablecerPassword(payload: Payload, ctx: BackendContext) {
   const rawToken = String(payload.token || "");
   const nueva = String(payload.nueva || "");
-  if (nueva.length < 8) throw new PublicError("DEBIL", "La contrasena debe tener al menos 8 caracteres.");
+  if (nueva.length < 8) throw new PublicError("DEBIL", "La contraseña debe tener al menos 8 caracteres.");
   const recovery = await rowBy<AnyRow>("RecuperacionPassword", "TokenHash", hashToken(rawToken));
   if (!recovery || recovery.Utilizado === "true" || new Date(recovery.FechaExpiracion).getTime() < Date.now()) {
-    throw new PublicError("TOKEN_INVALIDO", "El enlace es invalido o expiro.");
+    throw new PublicError("TOKEN_INVALIDO", "El enlace es inválido o expiró.");
   }
   const user = await rowBy<UserRow>("Usuarios", "UserId", recovery.UserId);
   if (!user) throw new PublicError("TOKEN_INVALIDO", "Usuario no encontrado.");
@@ -502,7 +502,7 @@ async function registrarCandidato(payload: Payload, ctx: BackendContext) {
   if (!payload.nombreCompleto || !email || !whatsapp) {
     throw new PublicError("DATOS", "Nombre, correo y WhatsApp son obligatorios.");
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new PublicError("EMAIL", "El formato del correo no es valido.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new PublicError("EMAIL", "El formato del correo no es válido.");
   if (await rowBy("Candidatos", "Email", email) || await rowBy("Usuarios", "Email", email)) {
     throw new PublicError("DUPLICADO", "Este correo ya esta registrado.");
   }
@@ -516,7 +516,7 @@ async function registrarCandidato(payload: Payload, ctx: BackendContext) {
     throw new PublicError("EDAD", "Debes ser mayor de edad para participar.");
   }
   if (!payload.password || String(payload.password).length < 8) {
-    throw new PublicError("DEBIL", "La contrasena debe tener al menos 8 caracteres.");
+    throw new PublicError("DEBIL", "La contraseña debe tener al menos 8 caracteres.");
   }
 
   const candidateId = id("cand");
@@ -626,11 +626,10 @@ async function obtenerExamen(user: UserRow, payload: Payload) {
   const moduleId = String(payload.moduleId || "");
   const previousAttempts = (await rowsWhere<AnyRow>("IntentosExamen", "CandidateId", user.CandidateId))
     .filter((a) => String(a.ModuleId) === moduleId).length;
-  const maxAttempts = moduleId === "final"
-    ? await configNum("intentos_examen_final", 2)
-    : await configNum("intentos_por_examen", 3);
-  if (previousAttempts >= maxAttempts) {
-    throw new PublicError("SIN_INTENTOS", "Alcanzaste el maximo de intentos para este examen.");
+  const hasAttemptLimit = moduleId !== "final";
+  const maxAttempts = hasAttemptLimit ? await configNum("intentos_por_examen", 3) : null;
+  if (hasAttemptLimit && previousAttempts >= maxAttempts!) {
+    throw new PublicError("SIN_INTENTOS", "Alcanzaste el máximo de intentos para este examen.");
   }
   let questions = shuffle(await getQuestions(moduleId)).map((q) => ({
     QuestionId: q.QuestionId,
@@ -640,18 +639,17 @@ async function obtenerExamen(user: UserRow, payload: Payload) {
     Puntaje: q.Puntaje,
   }));
   if (payload.cantidad) questions = questions.slice(0, Number(payload.cantidad));
-  return { preguntas: questions, intentosRestantes: maxAttempts - previousAttempts };
+  return { preguntas: questions, intentosRestantes: hasAttemptLimit ? maxAttempts! - previousAttempts : null };
 }
 
 async function enviarExamen(user: UserRow, payload: Payload) {
   const moduleId = String(payload.moduleId || "");
   const answers = payload.respuestas || {};
-  const maxAttempts = moduleId === "final"
-    ? await configNum("intentos_examen_final", 2)
-    : await configNum("intentos_por_examen", 3);
+  const hasAttemptLimit = moduleId !== "final";
+  const maxAttempts = hasAttemptLimit ? await configNum("intentos_por_examen", 3) : null;
   const previousAttempts = (await rowsWhere<AnyRow>("IntentosExamen", "CandidateId", user.CandidateId))
     .filter((a) => String(a.ModuleId) === moduleId).length;
-  if (previousAttempts >= maxAttempts) throw new PublicError("SIN_INTENTOS", "Sin intentos disponibles.");
+  if (hasAttemptLimit && previousAttempts >= maxAttempts!) throw new PublicError("SIN_INTENTOS", "Sin intentos disponibles.");
 
   const bank = await getQuestions(moduleId);
   let total = 0;
@@ -691,7 +689,7 @@ async function enviarExamen(user: UserRow, payload: Payload) {
     aprobado: approved,
     minimo: minimum,
     detalle: detail,
-    intentosRestantes: maxAttempts - (previousAttempts + 1),
+    intentosRestantes: hasAttemptLimit ? maxAttempts! - (previousAttempts + 1) : null,
   };
 }
 
@@ -780,13 +778,13 @@ async function evaluarRequisitos(candidateId: string) {
 
 async function certificar(user: UserRow, ctx: BackendContext) {
   const req = await evaluarRequisitos(user.CandidateId);
-  if (!req.cumpleTodo) throw new PublicError("REQUISITOS", "Aun no cumples todos los requisitos de certificacion.");
+  if (!req.cumpleTodo) throw new PublicError("REQUISITOS", "Aún no cumples todos los requisitos de certificación.");
   if (await rowBy("Vendedores", "CandidateId", user.CandidateId)) {
     throw new PublicError("YA_CERTIFICADO", "Ya estas certificado.");
   }
   const sellerCode = await generarCodigoVendedor();
   const referralCode = `${sellerCode}-REF`;
-  const certificateCode = `ARCA-${new Date().getFullYear()}-${sellerCode}`;
+  const certificateCode = `ATRIA-${new Date().getFullYear()}-${sellerCode}`;
   await insertRow("Certificados", {
     CertificateId: id("cert"),
     CandidateId: user.CandidateId,
@@ -854,7 +852,7 @@ async function verificarCertificado(code: string) {
 
 async function sellerDeUsuario(user: UserRow) {
   const seller = await rowBy<AnyRow>("Vendedores", "CandidateId", user.CandidateId);
-  if (!seller) throw new PublicError("NO_VENDEDOR", "No se encontro tu perfil de vendedor.");
+  if (!seller) throw new PublicError("NO_VENDEDOR", "No se encontró tu perfil de vendedor.");
   return seller;
 }
 
@@ -895,7 +893,7 @@ async function listarProspectos(user: UserRow) {
 }
 
 async function crearProspecto(user: UserRow, payload: Payload) {
-  if (String(await configGet("mantenimiento")) === "1") throw new PublicError("MANTENIMIENTO", "Sistema en mantenimiento. Intenta mas tarde.");
+  if (String(await configGet("mantenimiento")) === "1") throw new PublicError("MANTENIMIENTO", "Sistema en mantenimiento. Intenta más tarde.");
   const seller = await sellerDeUsuario(user);
   if (!payload.empresa && !payload.contacto) throw new PublicError("DATOS", "Indica al menos empresa o contacto.");
   const email = String(payload.email || "").toLowerCase().trim();
@@ -905,7 +903,7 @@ async function crearProspecto(user: UserRow, payload: Payload) {
     (email && String(p.Email).toLowerCase() === email) ||
     (whatsapp && String(p.WhatsApp).replace(/[^\d+]/g, "") === whatsapp),
   );
-  if (duplicate) throw new PublicError("DUPLICADO", "Ya existe un prospecto con ese contacto. Un administrador revisara la atribucion.");
+  if (duplicate) throw new PublicError("DUPLICADO", "Ya existe un prospecto con ese contacto. Un administrador revisará la atribución.");
   const prospectId = id("pros");
   await insertRow("Prospectos", {
     ProspectId: prospectId,
@@ -947,7 +945,7 @@ async function registrarActividad(user: UserRow, payload: Payload) {
   const seller = await sellerDeUsuario(user);
   const prospect = await rowBy<AnyRow>("Prospectos", "ProspectId", String(payload.prospectId || ""));
   if (!prospect || String(prospect.SellerId) !== String(seller.SellerId)) {
-    throw new PublicError("PROHIBIDO", "Prospecto invalido.");
+    throw new PublicError("PROHIBIDO", "Prospecto inválido.");
   }
   await insertRow("ActividadesCRM", {
     ActivityId: id("act"),
@@ -1086,7 +1084,7 @@ async function adminListar(payload: Payload) {
 async function adminCandidato(user: UserRow, payload: Payload) {
   const candidateId = String(payload.candidateId || "");
   const map: Record<string, string> = { aprobar: "aprobado", rechazar: "rechazado", suspender: "suspendido" };
-  if (!map[String(payload.accion || "")]) throw new PublicError("DATOS", "Accion invalida.");
+  if (!map[String(payload.accion || "")]) throw new PublicError("DATOS", "Acción inválida.");
   await updateRows("Candidatos", "CandidateId", candidateId, { Estado: map[payload.accion] });
   await auditar(user.UserId, `admin_candidato_${payload.accion}`, "candidato", candidateId, null, null, "");
   return { estado: map[payload.accion] };
@@ -1096,7 +1094,7 @@ async function adminActualizarVenta(user: UserRow, payload: Payload) {
   const saleId = String(payload.saleId || "");
   const estado = String(payload.estado || "");
   if (!["pendiente", "en_revision", "aprobada", "rechazada", "cancelada", "reembolsada"].includes(estado)) {
-    throw new PublicError("DATOS", "Estado invalido.");
+    throw new PublicError("DATOS", "Estado inválido.");
   }
   const sale = await rowBy<AnyRow>("Ventas", "SaleId", saleId);
   if (!sale) throw new PublicError("NO_ENCONTRADO", "Venta no encontrada.");
@@ -1126,7 +1124,7 @@ async function adminCalcularComision(user: UserRow, payload: Payload) {
   const sale = await rowBy<AnyRow>("Ventas", "SaleId", String(payload.saleId || ""));
   if (!sale) throw new PublicError("NO_ENCONTRADO", "Venta no encontrada.");
   if (String(sale.Estado) !== "aprobada") throw new PublicError("ESTADO", "La venta debe estar aprobada.");
-  if ((await rowsWhere("Comisiones", "SaleId", sale.SaleId)).length) throw new PublicError("YA_EXISTE", "La comision ya fue calculada.");
+  if ((await rowsWhere("Comisiones", "SaleId", sale.SaleId)).length) throw new PublicError("YA_EXISTE", "La comisión ya fue calculada.");
   const info = await calcularComisionDeVenta(sale);
   await auditar(user.UserId, "admin_calcular_comision", "venta", sale.SaleId, null, info, "");
   return info;

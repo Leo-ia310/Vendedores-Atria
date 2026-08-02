@@ -1,5 +1,5 @@
 /**
- * Motor lógico del Asistente Comercial ARCA (sin IA de pago).
+ * Motor lógico del Asistente Comercial ATRIA (sin IA de pago).
  *
  * Selecciona la mejor intención por puntaje combinando:
  *  - coincidencia exacta del mensaje con una keyword (puntaje alto)
@@ -134,7 +134,7 @@ export function analizar(mensaje: string, contextoPrevio: string | null = null):
       intencion: null,
       confianza: 0,
       respuesta: "¿En qué puedo ayudarte? Puedes preguntarme por el producto, la academia, las comisiones o tu cuenta.",
-      quickReplies: ["¿Qué es ARCA?", "¿Cómo son las comisiones?", "¿Cómo me certifico?"],
+      quickReplies: ["¿Qué es ATRIA?", "¿Cómo son las comisiones?", "¿Cómo me certifico?"],
     };
   }
 
@@ -161,7 +161,7 @@ export function analizar(mensaje: string, contextoPrevio: string | null = null):
       confianza: mejorScore > 0 ? Math.min(mejorScore / UMBRAL, 0.5) : 0,
       respuesta:
         "No encontré una respuesta exacta. ¿Podrías reformular tu pregunta o elegir una categoría? También puedo pasarte con soporte.",
-      quickReplies: ["Producto ARCA", "Academia", "Comisiones", "Contactar soporte"],
+      quickReplies: ["Producto ATRIA", "Academia", "Comisiones", "Contactar soporte"],
     };
   }
 

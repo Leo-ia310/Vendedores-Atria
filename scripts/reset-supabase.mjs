@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import pg from "pg";
+import { seedDefaultQuestions } from "./seed-default-questions.mjs";
 
 const APP_TABLES = [
   "Configuracion",
@@ -34,7 +35,7 @@ loadEnv(path.join(root, ".env"));
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("DATABASE_URL no esta definido. Agregalo a .env.local.");
+  console.error("DATABASE_URL no está definido. Agrégalo a .env.local.");
   process.exit(1);
 }
 
@@ -54,7 +55,8 @@ try {
 
   await client.query(schemaSql);
   await client.query("commit");
-  console.log(`Reset completo: ${APP_TABLES.length} tablas de la app fueron recreadas.`);
+  const questionCount = await seedDefaultQuestions({ log: false });
+  console.log(`Reset completo: ${APP_TABLES.length} tablas de la app fueron recreadas y ${questionCount} preguntas fueron sembradas.`);
 } catch (error) {
   await client.query("rollback").catch(() => {});
   throw error;

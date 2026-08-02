@@ -23,7 +23,7 @@ type Resultado = {
   aprobado: boolean;
   minimo: number;
   detalle: Detalle[];
-  intentosRestantes: number;
+  intentosRestantes: number | null;
 };
 
 function parseOpciones(raw: string, tipo: string): string[] {
@@ -69,7 +69,7 @@ export function ExamenRunner({
     setError("");
     setResultado(null);
     setRespuestas({});
-    const r = await api<{ preguntas: Pregunta[]; intentosRestantes: number }>("obtenerExamen", {
+    const r = await api<{ preguntas: Pregunta[]; intentosRestantes: number | null }>("obtenerExamen", {
       moduleId,
       cantidad,
     });
@@ -168,9 +168,12 @@ export function ExamenRunner({
                 {siguienteLabel || "Continuar"} <ArrowRight size={16} />
               </Link>
             ) : null}
-            {!resultado.aprobado && resultado.intentosRestantes > 0 && (
+            {!resultado.aprobado && (resultado.intentosRestantes === null || resultado.intentosRestantes > 0) && (
               <Button variant="secondary" onClick={cargar}>
-                <RotateCcw size={16} /> Reintentar ({resultado.intentosRestantes} restantes)
+                <RotateCcw size={16} />{" "}
+                {resultado.intentosRestantes === null
+                  ? "Reintentar"
+                  : `Reintentar (${resultado.intentosRestantes} restantes)`}
               </Button>
             )}
             <Link href={volverHref} className="arca-btn arca-btn-ghost">Volver</Link>
@@ -227,7 +230,7 @@ export function ExamenRunner({
           <p className="text-[14px] font-semibold">{titulo}</p>
           <p className="text-[12px] text-[color:var(--color-text-muted)]">
             {totalRespondidas} de {preguntas.length} respondidas
-            {intentosRestantes !== null && ` · ${intentosRestantes} intentos`}
+            {intentosRestantes === null ? " · sin límite de intentos" : ` · ${intentosRestantes} intentos`}
           </p>
         </div>
         {minutos ? (

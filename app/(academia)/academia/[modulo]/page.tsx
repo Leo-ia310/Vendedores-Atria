@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -25,6 +25,17 @@ export default function ModuloPage({
   const { toast } = useToast();
   const { moduloCompletado, recargar } = useProgreso();
   const [guardando, setGuardando] = useState(false);
+  const [checklistHecha, setChecklistHecha] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    if (!m || typeof window === "undefined") return;
+    try {
+      const guardada = window.localStorage.getItem(`atria:checklist:${m.id}`);
+      setChecklistHecha(guardada ? JSON.parse(guardada) : {});
+    } catch {
+      setChecklistHecha({});
+    }
+  }, [m?.id]);
 
   if (!m) {
     return (
@@ -37,6 +48,17 @@ export default function ModuloPage({
 
   const completo = moduloCompletado(m.id);
   const esFinal = m.id === "mod15";
+  const checklistCompletada = m.checklist.filter((_, i) => checklistHecha[i]).length;
+
+  function alternarChecklist(index: number) {
+    const siguiente = { ...checklistHecha, [index]: !checklistHecha[index] };
+    setChecklistHecha(siguiente);
+    try {
+      window.localStorage.setItem(`atria:checklist:${m!.id}`, JSON.stringify(siguiente));
+    } catch {
+      // El checklist sigue funcionando aunque el navegador bloquee localStorage.
+    }
+  }
 
   async function marcarCompletado() {
     setGuardando(true);
@@ -120,15 +142,39 @@ export default function ModuloPage({
         </section>
 
         <section className="arca-card p-5">
-          <div className="flex items-center gap-2">
-            <ClipboardCheck size={18} className="text-[color:var(--color-secondary)]" />
-            <h2 className="text-[17px] font-semibold">Lista de verificación</h2>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <ClipboardCheck size={18} className="text-[color:var(--color-secondary)]" />
+              <h2 className="text-[17px] font-semibold">Lista de verificación</h2>
+            </div>
+            <span className="text-[12px] font-medium text-[color:var(--color-text-muted)]">
+              {checklistCompletada} de {m.checklist.length} verificados
+            </span>
           </div>
           <ul className="mt-3 space-y-2">
             {m.checklist.map((c, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-[14px] text-[color:var(--color-text-secondary)]">
-                <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded-[3px] border border-[color:var(--color-border-strong)]" />
-                {c}
+              <li key={i}>
+                <button
+                  type="button"
+                  aria-pressed={Boolean(checklistHecha[i])}
+                  onClick={() => alternarChecklist(i)}
+                  className={`flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left text-[14px] transition ${
+                    checklistHecha[i]
+                      ? "bg-[color:var(--color-success-bg)] text-[color:var(--color-text-primary)]"
+                      : "text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-2)]"
+                  }`}
+                >
+                  <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border ${
+                    checklistHecha[i]
+                      ? "border-[color:var(--color-success)] bg-[color:var(--color-success)] text-white"
+                      : "border-[color:var(--color-border-strong)]"
+                  }`}>
+                    {checklistHecha[i] && <Check size={11} />}
+                  </span>
+                  <span className={checklistHecha[i] ? "line-through decoration-[color:var(--color-success)]/60" : ""}>
+                    {c}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
