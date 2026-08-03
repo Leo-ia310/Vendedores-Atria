@@ -36,8 +36,8 @@ export const CERTIFICACION = {
 /** Planes de ATRIA usados para ejemplos de comisión en la landing (fuente: SaaS ATRIA). */
 export const PLANES_EJEMPLO = [
   { nombre: "Demo", precioMensual: 0 },
-  { nombre: "Pro", precioMensual: 45.99, destacado: true },
-  { nombre: "Enterprise", precioMensual: 199 },
+  { nombre: "Pro", precioMensual: 39, destacado: true },
+  { nombre: "Enterprise", precioMensual: 149 },
 ] as const;
 
 /** Devuelve el ejemplo de comisión para un precio mensual dado. */

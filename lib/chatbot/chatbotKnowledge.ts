@@ -111,7 +111,7 @@ export const KNOWLEDGE: Intencion[] = [
     prioridad: 60,
     keywords: ["precio", "precios", "cuanto cuesta", "planes", "que planes", "cuanto vale", "costo de atria", "costo de arca"],
     sinonimos: ["plan", "tarifa"],
-    respuesta: "ATRIA tiene 3 planes: Demo (gratis), Pro ($45.99/mes) y Enterprise ($199/mes). El plan Pro es la base más común para calcular comisiones.",
+    respuesta: "ATRIA tiene 3 planes: Demo (gratis), Pro ($39/mes) y Enterprise ($149/mes). El plan Pro es la base más común para calcular comisiones.",
     quickReplies: ["¿Cómo son las comisiones?", "Ver ejemplo de comisión"],
   },
   {
@@ -139,7 +139,7 @@ export const KNOWLEDGE: Intencion[] = [
     prioridad: 65,
     keywords: ["ejemplo de comision", "ejemplo comision", "cuanto por plan pro", "ejemplo", "cuanto de 45"],
     contexto: ["comision_general", "planes_precios"],
-    respuesta: "Para el plan Pro de $45.99: tu primera venta ≈ $6.90 (15%) y cada renovación ≈ $2.30 (5%). No hay límite de clientes.",
+    respuesta: "Para el plan Pro de $39: tu primera venta ≈ $5.85 (15%) y cada renovación ≈ $1.95 (5%). No hay límite de clientes.",
     quickReplies: ["¿Cuándo me pagan?", "¿Qué es una renovación?"],
   },
   {
