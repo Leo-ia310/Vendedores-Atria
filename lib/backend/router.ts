@@ -572,11 +572,57 @@ async function getQuestions(moduleId: string): Promise<QuestionRow[]> {
 }
 
 async function obtenerProgreso(user: UserRow) {
-  const [progreso, intentos] = await Promise.all([
+  let [progreso, intentos] = await Promise.all([
     rowsWhere("Progreso", "CandidateId", user.CandidateId),
     rowsWhere("IntentosExamen", "CandidateId", user.CandidateId),
   ]);
+  const repaired = await repararProgresoDesdeIntentos(user.CandidateId, progreso, intentos);
+  if (repaired) {
+    [progreso, intentos] = await Promise.all([
+      rowsWhere("Progreso", "CandidateId", user.CandidateId),
+      rowsWhere("IntentosExamen", "CandidateId", user.CandidateId),
+    ]);
+  }
   return { progreso, intentos };
+}
+
+async function repararProgresoDesdeIntentos(candidateId: string, progreso: AnyRow[], intentos: AnyRow[]) {
+  if (!candidateId) return false;
+  const aprobados = new Set(
+    intentos
+      .filter((a) => String(a.ModuleId) !== "final" && esVerdadero(a.Aprobado))
+      .map((a) => String(a.ModuleId)),
+  );
+  const completos = new Set(
+    progreso
+      .filter((p) => String(p.Estado) === "completado")
+      .map((p) => String(p.ModuleId)),
+  );
+  const faltantes = Array.from(aprobados).filter((moduleId) => !completos.has(moduleId));
+  for (const moduleId of faltantes) {
+    const existing = progreso.find((p) => String(p.ModuleId) === moduleId);
+    if (existing) {
+      await updateRows("Progreso", "ProgressId", existing.ProgressId, {
+        Estado: "completado",
+        Porcentaje: 100,
+        UltimaActividad: now(),
+        FechaFinalizacion: existing.FechaFinalizacion || now(),
+      });
+    } else {
+      await insertRow("Progreso", {
+        ProgressId: id("prg"),
+        CandidateId: candidateId,
+        ModuleId: moduleId,
+        Estado: "completado",
+        Porcentaje: 100,
+        FechaInicio: now(),
+        FechaFinalizacion: now(),
+        UltimaActividad: now(),
+      });
+    }
+  }
+  if (faltantes.length) await actualizarProgresoGlobal(candidateId);
+  return faltantes.length > 0;
 }
 
 async function guardarProgreso(user: UserRow, payload: Payload) {
@@ -624,11 +670,13 @@ async function actualizarProgresoGlobal(candidateId: string) {
 
 async function obtenerExamen(user: UserRow, payload: Payload) {
   const moduleId = String(payload.moduleId || "");
-  const previousAttempts = (await rowsWhere<AnyRow>("IntentosExamen", "CandidateId", user.CandidateId))
-    .filter((a) => String(a.ModuleId) === moduleId).length;
+  const attempts = (await rowsWhere<AnyRow>("IntentosExamen", "CandidateId", user.CandidateId))
+    .filter((a) => String(a.ModuleId) === moduleId);
+  const previousAttempts = attempts.length;
+  const alreadyApproved = attempts.some((a) => esVerdadero(a.Aprobado));
   const hasAttemptLimit = moduleId !== "final";
   const maxAttempts = hasAttemptLimit ? await configNum("intentos_por_examen", 3) : null;
-  if (hasAttemptLimit && previousAttempts >= maxAttempts!) {
+  if (hasAttemptLimit && previousAttempts >= maxAttempts! && !alreadyApproved) {
     throw new PublicError("SIN_INTENTOS", "Alcanzaste el máximo de intentos para este examen.");
   }
   let questions = shuffle(await getQuestions(moduleId)).map((q) => ({
@@ -639,7 +687,11 @@ async function obtenerExamen(user: UserRow, payload: Payload) {
     Puntaje: q.Puntaje,
   }));
   if (payload.cantidad) questions = questions.slice(0, Number(payload.cantidad));
-  return { preguntas: questions, intentosRestantes: hasAttemptLimit ? maxAttempts! - previousAttempts : null };
+  return {
+    preguntas: questions,
+    intentosRestantes: hasAttemptLimit ? Math.max(0, maxAttempts! - previousAttempts) : null,
+    aprobado: alreadyApproved,
+  };
 }
 
 async function enviarExamen(user: UserRow, payload: Payload) {
@@ -647,9 +699,11 @@ async function enviarExamen(user: UserRow, payload: Payload) {
   const answers = payload.respuestas || {};
   const hasAttemptLimit = moduleId !== "final";
   const maxAttempts = hasAttemptLimit ? await configNum("intentos_por_examen", 3) : null;
-  const previousAttempts = (await rowsWhere<AnyRow>("IntentosExamen", "CandidateId", user.CandidateId))
-    .filter((a) => String(a.ModuleId) === moduleId).length;
-  if (hasAttemptLimit && previousAttempts >= maxAttempts!) throw new PublicError("SIN_INTENTOS", "Sin intentos disponibles.");
+  const attempts = (await rowsWhere<AnyRow>("IntentosExamen", "CandidateId", user.CandidateId))
+    .filter((a) => String(a.ModuleId) === moduleId);
+  const previousAttempts = attempts.length;
+  const alreadyApproved = attempts.some((a) => esVerdadero(a.Aprobado));
+  if (hasAttemptLimit && previousAttempts >= maxAttempts! && !alreadyApproved) throw new PublicError("SIN_INTENTOS", "Sin intentos disponibles.");
 
   const bank = await getQuestions(moduleId);
   let total = 0;
@@ -689,8 +743,13 @@ async function enviarExamen(user: UserRow, payload: Payload) {
     aprobado: approved,
     minimo: minimum,
     detalle: detail,
-    intentosRestantes: hasAttemptLimit ? maxAttempts! - (previousAttempts + 1) : null,
+    guardado: true,
+    intentosRestantes: hasAttemptLimit ? Math.max(0, maxAttempts! - (previousAttempts + 1)) : null,
   };
+}
+
+function esVerdadero(value: unknown) {
+  return value === true || ["true", "1", "si", "sí"].includes(String(value).toLowerCase());
 }
 
 function grade(question: QuestionRow, answer: unknown) {

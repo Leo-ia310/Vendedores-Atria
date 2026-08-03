@@ -7,7 +7,7 @@ Usa estos datos como referencia cuando cargues cuentas demo en Supabase o desde 
 | Rol | Correo | Contraseña | Notas |
 |---|---|---|---|
 | **Administrador** | *(el que definiste)* | *(la que definiste)* | Se crea desde Supabase o desde un flujo administrativo interno. |
-| **Vendedor** | `vendedor.demo@atria.app` | `Vendedor123!` | Certificado, con prospectos, 2 ventas aprobadas y comisiones. |
+| **Vendedor** | `vendedor.demo@atria.app` | `vendedor123!` | Certificado y listo para entrar al panel de vendedor. |
 | **Candidato** | `candidato.demo@atria.app` | `Candidato123!` | En capacitación (40% de progreso). |
 
 ## Roles del sistema

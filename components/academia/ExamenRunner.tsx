@@ -23,6 +23,7 @@ type Resultado = {
   aprobado: boolean;
   minimo: number;
   detalle: Detalle[];
+  guardado?: boolean;
   intentosRestantes: number | null;
 };
 
@@ -69,7 +70,7 @@ export function ExamenRunner({
     setError("");
     setResultado(null);
     setRespuestas({});
-    const r = await api<{ preguntas: Pregunta[]; intentosRestantes: number | null }>("obtenerExamen", {
+    const r = await api<{ preguntas: Pregunta[]; intentosRestantes: number | null; aprobado?: boolean }>("obtenerExamen", {
       moduleId,
       cantidad,
     });
@@ -122,6 +123,10 @@ export function ExamenRunner({
       return;
     }
     setResultado(r.data);
+    setIntentosRestantes(r.data.intentosRestantes);
+    if (r.data.aprobado && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("atria:progreso-actualizado", { detail: { moduleId } }));
+    }
   }
 
   if (cargando) {
@@ -159,9 +164,14 @@ export function ExamenRunner({
           <p className="mt-3 text-2xl">{resultado.puntaje}%</p>
           <p className="mt-1 text-[14px] text-[color:var(--color-text-muted)]">
             {resultado.aprobado
-              ? "¡Aprobado! Superaste el mínimo requerido."
+              ? "¡Aprobado! El examen quedó guardado en tu progreso."
               : `No alcanzaste el mínimo (${resultado.minimo}%).`}
           </p>
+          {resultado.aprobado && (
+            <p className="mt-2 text-[13px] font-medium text-[color:var(--color-success)]">
+              Ya aparecerá como examen aprobado en Academia y Certificación.
+            </p>
+          )}
           <div className="mt-5 flex flex-wrap justify-center gap-2">
             {resultado.aprobado && siguienteHref ? (
               <Link href={siguienteHref} className="arca-btn arca-btn-brand">

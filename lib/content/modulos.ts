@@ -617,6 +617,242 @@ export const MODULOS: Modulo[] = [
   },
 ];
 
+const REFUERZOS_MODULOS: Record<string, Seccion[]> = {
+  mod1: [
+    {
+      h: "Cómo explicarlo desde cero",
+      p: [
+        "Si alguien nunca ha escuchado de ATRIA, no empieces por una lista de funciones. Empieza por el problema: muchos negocios venden, compran, cobran y hacen inventario en lugares separados. Eso provoca errores, tiempo perdido y poca claridad para decidir.",
+        "Una frase simple: ATRIA ayuda a que un comercio o restaurante controle ventas, pedidos, inventario, reportes y contabilidad desde una sola operación.",
+      ],
+      lista: [
+        "Problema: desorden operativo.",
+        "Solución: una plataforma conectada.",
+        "Beneficio: menos errores, más control y mejores decisiones.",
+      ],
+    },
+  ],
+  mod2: [
+    {
+      h: "Mapa mental del producto",
+      p: [
+        "Piensa en ATRIA como una cadena: el negocio vende o toma un pedido, esa operación afecta caja, inventario, reportes y contabilidad. El asesor debe explicar esa conexión, no solo nombrar pantallas.",
+        "Para comercios, el flujo más común es venta -> inventario -> reporte -> contabilidad. Para restaurantes, el flujo es menú -> pedido -> cobro -> inventario de insumos -> reporte.",
+      ],
+    },
+  ],
+  mod3: [
+    {
+      h: "Cómo decidir si vale la pena perseguir un prospecto",
+      p: [
+        "Un buen prospecto no es solo alguien con negocio: es alguien con dolor, operación repetida y necesidad de control. Si no hay dolor, presupuesto, autoridad o intención de cambiar, registra el contacto como futuro o descártalo con respeto.",
+        "En restaurantes, una señal fuerte es que el dueño no sabe qué platos dejan margen, qué insumos se consumen más o dónde se pierden pedidos.",
+      ],
+    },
+  ],
+  mod4: [
+    {
+      h: "La estructura de una conversación comercial",
+      p: [
+        "Una conversación sana tiene apertura, diagnóstico, propuesta de valor, manejo de dudas y próximo paso. Si saltas directo a precio o cierre, el cliente siente presión. Si solo informas, el cliente no entiende por qué debería cambiar.",
+        "La venta consultiva no obliga al cliente: le ayuda a entender su problema, medir el impacto y decidir con claridad.",
+      ],
+    },
+  ],
+  mod5: [
+    {
+      h: "Sistema simple de prospección semanal",
+      p: [
+        "Trabaja con una lista viva: nuevos negocios, contactados, respondieron, reunión agendada y descartados. Cada semana agrega prospectos nuevos y limpia los que no califican.",
+        "Un buen mensaje de prospección debe sonar humano: menciona el tipo de negocio, el problema que puedes ayudar a ordenar y una pregunta concreta para abrir conversación.",
+      ],
+    },
+  ],
+  mod6: [
+    {
+      h: "Diagnóstico que descubre impacto",
+      p: [
+        "No basta con preguntar qué sistema usa. Debes descubrir cuánto cuesta el problema: horas perdidas, errores de caja, productos vencidos, pedidos confundidos, inventario que no cuadra o reportes que llegan tarde.",
+        "El impacto es lo que convierte una función en valor. Sin impacto, ATRIA parece un gasto; con impacto, se entiende como inversión.",
+      ],
+    },
+  ],
+  mod7: [
+    {
+      h: "Demo guiada por el dolor",
+      p: [
+        "Antes de mostrar una pantalla, di qué problema vas a resolver. Por ejemplo: 'Usted me dijo que los pedidos se confunden; le mostraré cómo se toma un pedido, se cobra y queda registrado'.",
+        "Una demo excelente no enseña todo ATRIA; enseña lo suficiente para que el cliente vea su operación más ordenada.",
+      ],
+    },
+  ],
+  mod8: [
+    {
+      h: "Biblioteca mental de objeciones",
+      p: [
+        "Cada objeción tiene una capa visible y una capa real. 'Está caro' puede significar falta de valor, falta de presupuesto o miedo a equivocarse. 'Déjeme pensarlo' puede significar que falta información, autoridad o urgencia.",
+        "Responde con una pregunta breve antes de defender ATRIA. Así evitas discutir y entiendes qué debe resolverse.",
+      ],
+    },
+  ],
+  mod9: [
+    {
+      h: "Seguimiento con intención",
+      p: [
+        "El seguimiento no es insistir; es avanzar la decisión. Cada contacto debe tener una razón: enviar resumen, responder una duda, compartir una comparación, confirmar una fecha o cerrar la oportunidad.",
+        "Si el cliente no comprará, registra la razón. Saber por qué se perdió una oportunidad ayuda a mejorar el discurso y evita perseguir cuentas frías.",
+      ],
+    },
+  ],
+  mod10: [
+    {
+      h: "Cierre sin presión",
+      p: [
+        "Cerrar es ordenar el siguiente paso cuando el cliente ya entendió el valor. Una buena pregunta de cierre puede ser: '¿Le parece que avancemos con el plan que cubre este flujo y coordinamos implementación?'.",
+        "Si el cliente dice no, no lo tomes como fracaso automático. Cierra con respeto, registra el motivo y define si habrá seguimiento futuro.",
+      ],
+    },
+  ],
+  mod11: [
+    {
+      h: "El CRM de ATRIA vive aquí",
+      p: [
+        "El CRM que usarás para vender ATRIA está dentro de esta plataforma, en el panel del vendedor. No es una teoría externa: aquí registras prospectos, actualizas etapas, dejas notas, programas próximas acciones y registras ventas cuando el cliente compra.",
+        "El CRM es la fuente de verdad del programa. Si un prospecto, llamada, demo o venta no está aquí, para el sistema no existe y no puede proteger tu seguimiento ni tus comisiones.",
+      ],
+    },
+    {
+      h: "Qué se registra en un prospecto",
+      p: [
+        "Un prospecto debe tener datos suficientes para reconocerlo y darle seguimiento: empresa, contacto, correo o WhatsApp, país, sector, fuente, etapa, valor estimado, próxima acción, fecha de seguimiento y notas.",
+        "No llenes el CRM solo por llenar. Cada dato debe ayudarte a saber quién es el cliente, qué le duele, qué se acordó y cuál es el siguiente paso.",
+      ],
+      lista: [
+        "Empresa/contacto: identifica a quién estás trabajando.",
+        "Email/WhatsApp: permite retomar conversación.",
+        "Sector: ayuda a personalizar la demo.",
+        "Fuente: muestra de dónde viene la oportunidad.",
+        "Valor estimado: ayuda a priorizar.",
+        "Notas: resumen del dolor, autoridad, objeciones y acuerdos.",
+      ],
+    },
+    {
+      h: "Etapas reales del pipeline",
+      p: [
+        "Las etapas no son adornos: representan el estado real de la oportunidad. Si las usas bien, sabes qué trabajar hoy y qué está estancado.",
+        "Mover una etapa sin que haya ocurrido algo real crea confusión. Por ejemplo, no pongas 'demo' si solo enviaste un mensaje; usa 'contactado' o 'respondió'.",
+      ],
+      lista: [
+        "Nuevo: lo agregaste, pero aún no hay interacción.",
+        "Contactado: ya escribiste o llamaste.",
+        "Respondió: hay interés o al menos conversación.",
+        "Calificado: confirmaste dolor, autoridad, presupuesto o urgencia.",
+        "Reunión agendada: hay fecha para diagnóstico o demo.",
+        "Demo: ya vio el flujo de ATRIA.",
+        "Propuesta: recibió precio, plan o condiciones.",
+        "Negociación: está comparando, pidiendo ajustes o validando decisión.",
+        "Ganado: compró y se registra la venta.",
+        "Perdido: decidió no comprar.",
+        "Seguimiento futuro: no compra ahora, pero puede reactivarse.",
+      ],
+    },
+    {
+      h: "Próxima acción: el campo más importante",
+      p: [
+        "La próxima acción evita que el CRM sea un cementerio de contactos. Cada prospecto activo debe tener una acción concreta: llamar, enviar propuesta, confirmar demo, resolver duda, revisar comparación o cerrar oportunidad.",
+        "Una próxima acción débil dice 'dar seguimiento'. Una próxima acción fuerte dice 'Enviar resumen de demo y confirmar decisión el jueves'.",
+      ],
+    },
+    {
+      h: "Actividades y evidencia",
+      p: [
+        "Cada interacción importante debe quedar como actividad: llamada, mensaje, reunión, nota o propuesta. Esto crea historial y permite entender qué pasó sin depender de memoria.",
+        "La evidencia protege la atribución. Si otro vendedor registra el mismo cliente, el sistema y el administrador revisarán quién registró primero con información válida.",
+      ],
+    },
+    {
+      h: "Del CRM a la venta",
+      p: [
+        "Cuando el cliente compra, pasas de oportunidad a venta. En el panel de ventas registras cliente, plan, monto, tipo de venta y comprobante o referencia.",
+        "La venta entra como pendiente. Un administrador debe aprobarla. Solo cuando se aprueba se calcula la comisión correspondiente.",
+      ],
+    },
+    {
+      h: "Cómo usarlo día a día",
+      p: [
+        "Empieza el día filtrando mentalmente tus prospectos: quién tiene próxima acción hoy, quién está en propuesta, quién está en negociación y quién debe cerrarse como perdido o futuro.",
+        "Al terminar cada conversación, actualiza etapa, notas y próxima acción. No esperes al final de la semana: se olvidan detalles importantes.",
+      ],
+    },
+    {
+      h: "Errores que dañan tus comisiones",
+      p: [
+        "Los errores más graves son registrar tarde, registrar sin datos verificables, duplicar prospectos, inflar valor estimado, marcar ganado sin venta real o no guardar evidencia.",
+        "Recuerda: el CRM no es vigilancia; es protección para ti, para el cliente y para ATRIA.",
+      ],
+    },
+  ],
+  mod12: [
+    {
+      h: "Ética en decisiones difíciles",
+      p: [
+        "La ética se prueba cuando hay presión por cerrar. Si el cliente pide una función que no existe, se responde con honestidad. Si pide descuento, se explica que solo pueden usarse opciones oficiales. Si decide no comprar, se respeta.",
+        "Una venta mal cerrada puede traer reembolsos, pérdida de confianza y anulación de comisiones.",
+      ],
+    },
+  ],
+  mod13: [
+    {
+      h: "Cómo leer tus comisiones",
+      p: [
+        "Las comisiones dependen de ventas aprobadas. Una venta registrada no es lo mismo que una venta aprobada. Primero queda pendiente; luego administración valida comprobante, monto, cliente y estado.",
+        "Si una venta se cancela, rechaza o reembolsa, la comisión puede no generarse o puede anularse.",
+      ],
+    },
+  ],
+  mod14: [
+    {
+      h: "Rutina mínima de productividad",
+      p: [
+        "Una rutina simple: prospectar todos los días, actualizar CRM después de cada contacto, revisar propuestas abiertas, agendar demos y medir conversión semanal.",
+        "No necesitas hacer todo perfecto; necesitas que tu sistema sea repetible. Lo que se mide se puede mejorar.",
+      ],
+    },
+  ],
+  mod15: [
+    {
+      h: "Mentalidad para aprobar y vender",
+      p: [
+        "El examen final no busca memorizar frases: busca confirmar que puedes explicar ATRIA, diagnosticar un negocio, usar el CRM, manejar objeciones, respetar reglas y entender comisiones.",
+        "Si repruebas, repasa los módulos con menor puntaje y vuelve a intentarlo. El examen final no tiene límite de intentos porque el objetivo es dominio real.",
+      ],
+    },
+  ],
+};
+
+const TIEMPOS_REFORZADOS: Record<string, string> = {
+  mod11: "45 min",
+};
+
+for (const modulo of MODULOS) {
+  const refuerzos = REFUERZOS_MODULOS[modulo.id];
+  if (refuerzos) modulo.secciones.push(...refuerzos);
+  if (TIEMPOS_REFORZADOS[modulo.id]) modulo.tiempo = TIEMPOS_REFORZADOS[modulo.id];
+  if (modulo.id === "mod11") {
+    modulo.resumen.push(
+      "El CRM de ATRIA se usa dentro de esta plataforma.",
+      "Cada prospecto debe tener etapa, notas y próxima acción.",
+      "Las ventas pasan por aprobación antes de generar comisión.",
+    );
+    modulo.checklist.push(
+      "Sé crear un prospecto en el panel.",
+      "Sé moverlo por etapas reales.",
+      "Sé registrar actividades y próxima acción.",
+      "Sé cuándo pasar de prospecto a venta.",
+    );
+  }
+}
+
 export function getModulo(id: string): Modulo | undefined {
   return MODULOS.find((m) => m.id === id);
 }

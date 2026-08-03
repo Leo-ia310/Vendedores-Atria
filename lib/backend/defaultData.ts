@@ -83,6 +83,9 @@ export const DEFAULT_QUESTIONS: QuestionRow[] = [
   q("mod11", "vf", "Lo que no está registrado en el CRM no cuenta para comisiones.", ["Verdadero", "Falso"], "Verdadero", "El registro con evidencia es clave."),
   q("mod11", "opcion", "¿Qué debe tener un prospecto bien registrado?", ["Datos verificables, etapa, notas y próxima acción", "Solo el nombre", "Un apodo sin contacto", "Nada, se recuerda de memoria"], "Datos verificables, etapa, notas y próxima acción", "El CRM protege el seguimiento y la atribución."),
   q("mod11", "opcion", "Si un cliente no compra, la etapa correcta puede ser...", ["Perdido o seguimiento futuro, según el caso", "Ganado", "Aprobada", "Pagada"], "Perdido o seguimiento futuro, según el caso", "El pipeline debe reflejar la realidad de la oportunidad."),
+  q("mod11", "opcion", "¿Dónde se lleva el CRM de vendedores de ATRIA?", ["En esta plataforma, dentro del panel del vendedor", "Solo en una libreta personal", "En mensajes sueltos de WhatsApp", "No se lleva CRM"], "En esta plataforma, dentro del panel del vendedor", "El CRM operativo del vendedor vive aquí, en el panel."),
+  q("mod11", "opcion", "¿Cuál es una próxima acción bien escrita?", ["Dar seguimiento", "Enviar propuesta y confirmar decisión el jueves", "Ver qué pasa", "Hablar algún día"], "Enviar propuesta y confirmar decisión el jueves", "La próxima acción debe ser concreta y accionable."),
+  q("mod11", "vf", "Una venta registrada genera comisión inmediatamente, aunque no haya sido aprobada.", ["Verdadero", "Falso"], "Falso", "La comisión se calcula cuando administración aprueba la venta."),
 
   q("mod12", "vf", "Se pueden ofrecer descuentos sin autorización.", ["Verdadero", "Falso"], "Falso", "Modificar precios sin autorización es una falta grave."),
   q("mod12", "vf", "Está prohibido hablar mal de competidores para cerrar una venta.", ["Verdadero", "Falso"], "Verdadero", "Compite por valor y profesionalismo, no por ataques."),

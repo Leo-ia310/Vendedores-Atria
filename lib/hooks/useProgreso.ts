@@ -11,7 +11,7 @@ export type ProgresoRow = {
 export type IntentoRow = {
   ModuleId: string;
   Puntaje: number;
-  Aprobado: string;
+  Aprobado: string | boolean;
 };
 
 export type EstadoAcademia = {
@@ -40,16 +40,27 @@ export function useProgreso() {
     recargar();
   }, [recargar]);
 
-  const moduloCompletado = useCallback(
-    (moduleId: string) =>
-      data.progreso.some((p) => p.ModuleId === moduleId && p.Estado === "completado"),
-    [data.progreso],
-  );
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const actualizar = () => { void recargar(); };
+    window.addEventListener("atria:progreso-actualizado", actualizar);
+    return () => window.removeEventListener("atria:progreso-actualizado", actualizar);
+  }, [recargar]);
+
+  const esAprobado = (value: unknown) =>
+    value === true || ["true", "1", "si", "sí"].includes(String(value).toLowerCase());
 
   const examenAprobado = useCallback(
     (moduleId: string) =>
-      data.intentos.some((a) => a.ModuleId === moduleId && String(a.Aprobado) === "true"),
+      data.intentos.some((a) => a.ModuleId === moduleId && esAprobado(a.Aprobado)),
     [data.intentos],
+  );
+
+  const moduloCompletado = useCallback(
+    (moduleId: string) =>
+      data.progreso.some((p) => p.ModuleId === moduleId && p.Estado === "completado") ||
+      data.intentos.some((a) => a.ModuleId === moduleId && moduleId !== "final" && esAprobado(a.Aprobado)),
+    [data.progreso, data.intentos],
   );
 
   return { ...data, cargando, error, recargar, moduloCompletado, examenAprobado };
