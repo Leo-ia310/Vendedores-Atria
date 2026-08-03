@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Users2, Building2 } from "lucide-react";
+import { Plus, Users2, Building2, CalendarClock, Mail, Phone, Tag } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -63,45 +63,40 @@ export default function CrmPage() {
           />
         </div>
       ) : (
-        <div className="arca-card overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-[13px]">
-            <thead>
-              <tr className="border-b border-[color:var(--color-border)] text-[color:var(--color-text-muted)]">
-                <th className="px-4 py-3 font-semibold">Empresa / Contacto</th>
-                <th className="px-4 py-3 font-semibold">Sector</th>
-                <th className="px-4 py-3 font-semibold">Etapa</th>
-                <th className="px-4 py-3 text-right font-semibold">Valor est.</th>
-                <th className="px-4 py-3 font-semibold">Próxima acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {prospectos.map((p) => (
-                <tr
-                  key={p.ProspectId}
-                  onClick={() => setDetalle(p)}
-                  className="cursor-pointer border-b border-[color:var(--color-border)] transition last:border-0 hover:bg-[color:var(--color-surface-2)]"
+        <div className="overflow-x-auto pb-2">
+          <div className="flex min-w-max gap-4">
+            {ETAPAS_CRM.map((etapa) => {
+              const items = prospectos.filter((p) => p.Etapa === etapa.id);
+              return (
+                <section
+                  key={etapa.id}
+                  className="flex w-[280px] shrink-0 flex-col rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)]"
                 >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Building2 size={15} className="text-[color:var(--color-text-muted)]" />
-                      <div>
-                        <p className="font-medium text-[color:var(--color-text-primary)]">{p.Empresa || "—"}</p>
-                        <p className="text-[color:var(--color-text-muted)]">{p.Contacto}</p>
+                  <div className="flex items-center justify-between gap-2 border-b border-[color:var(--color-border)] px-3 py-3">
+                    <h2 className="truncate text-[13px] font-semibold text-[color:var(--color-text-primary)]">
+                      {etapa.nombre}
+                    </h2>
+                    <Badge tono={ETAPA_TONO[etapa.id] || "neutral"}>{items.length}</Badge>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-3 p-3">
+                    {items.length === 0 ? (
+                      <div className="rounded-md border border-dashed border-[color:var(--color-border-strong)] bg-white/60 px-3 py-6 text-center text-[12px] text-[color:var(--color-text-muted)]">
+                        Sin prospectos
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{p.Sector || "—"}</td>
-                  <td className="px-4 py-3">
-                    <Badge tono={ETAPA_TONO[p.Etapa] || "neutral"}>
-                      {ETAPAS_CRM.find((e) => e.id === p.Etapa)?.nombre || p.Etapa}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium">{formatearUSD(Number(p.ValorEstimado || 0))}</td>
-                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{p.ProximaAccion || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    ) : (
+                      items.map((p) => (
+                        <ProspectoKanbanCard
+                          key={p.ProspectId}
+                          prospecto={p}
+                          onClick={() => setDetalle(p)}
+                        />
+                      ))
+                    )}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -119,6 +114,71 @@ export default function CrmPage() {
         />
       )}
     </>
+  );
+}
+
+function ProspectoKanbanCard({
+  prospecto,
+  onClick,
+}: {
+  prospecto: Prospecto;
+  onClick: () => void;
+}) {
+  const contacto = prospecto.WhatsApp || prospecto.Email || "sin contacto";
+  const ContactIcon = prospecto.WhatsApp ? Phone : Mail;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-md border border-[color:var(--color-border)] bg-white p-3 text-left shadow-sm transition hover:border-[color:var(--color-tertiary)] hover:shadow-md"
+    >
+      <div className="flex items-start gap-2">
+        <Building2 size={15} className="mt-0.5 shrink-0 text-[color:var(--color-text-muted)]" />
+        <div className="min-w-0">
+          <p className="truncate text-[13.5px] font-semibold text-[color:var(--color-text-primary)]">
+            {prospecto.Empresa || prospecto.Contacto || "Prospecto sin nombre"}
+          </p>
+          {prospecto.Contacto && (
+            <p className="truncate text-[12px] text-[color:var(--color-text-muted)]">
+              {prospecto.Contacto}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-1.5 text-[12px] text-[color:var(--color-text-secondary)]">
+        <p className="flex min-w-0 items-center gap-1.5">
+          <ContactIcon size={13} className="shrink-0 text-[color:var(--color-text-muted)]" />
+          <span className="truncate">{contacto}</span>
+        </p>
+        {(prospecto.Sector || prospecto.Fuente) && (
+          <p className="flex min-w-0 items-center gap-1.5">
+            <Tag size={13} className="shrink-0 text-[color:var(--color-text-muted)]" />
+            <span className="truncate">
+              {[prospecto.Sector, prospecto.Fuente].filter(Boolean).join(" · ")}
+            </span>
+          </p>
+        )}
+        <p className="font-medium text-[color:var(--color-text-primary)]">
+          {formatearUSD(Number(prospecto.ValorEstimado || 0))}
+        </p>
+        {(prospecto.ProximaAccion || prospecto.FechaSeguimiento) && (
+          <p className="flex items-start gap-1.5 text-[color:var(--color-text-muted)]">
+            <CalendarClock size={13} className="mt-0.5 shrink-0" />
+            <span>
+              {prospecto.ProximaAccion || "Dar seguimiento"}
+              {prospecto.FechaSeguimiento ? ` · ${formatearFecha(prospecto.FechaSeguimiento)}` : ""}
+            </span>
+          </p>
+        )}
+        {prospecto.Notas && (
+          <p className="line-clamp-2 rounded bg-[color:var(--color-surface-2)] px-2 py-1 text-[11.5px] text-[color:var(--color-text-muted)]">
+            {prospecto.Notas}
+          </p>
+        )}
+      </div>
+    </button>
   );
 }
 

@@ -4,11 +4,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  GraduationCap, LayoutDashboard, Users2, ShoppingBag, Wallet, BookOpen,
+  GraduationCap, LayoutDashboard, Users2, ShoppingBag, Wallet,
   FolderDown, UserCircle, LogOut, Menu, ShieldCheck, Settings, MessageCircle, Award,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import { NotificacionesBell, type Notificacion } from "@/components/app/NotificacionesBell";
+import { api } from "@/lib/api";
 import { useAuth, type Rol } from "@/lib/auth/session";
 import { cn, iniciales } from "@/lib/utils";
 
@@ -26,7 +28,6 @@ const NAV: Record<Rol, NavItem[]> = {
     { href: "/panel/crm", label: "CRM y prospectos", icon: Users2 },
     { href: "/panel/ventas", label: "Ventas", icon: ShoppingBag },
     { href: "/panel/comisiones", label: "Comisiones", icon: Wallet },
-    { href: "/panel/academia", label: "Academia", icon: BookOpen },
     { href: "/panel/recursos", label: "Recursos", icon: FolderDown },
     { href: "/perfil", label: "Mi perfil", icon: UserCircle },
   ],
@@ -52,6 +53,7 @@ export function AppShell({
   const router = useRouter();
   const pathname = usePathname();
   const [movilAbierto, setMovilAbierto] = useState(false);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
   // Guard: exige sesión y (si se especifica) rol correcto.
   useEffect(() => {
@@ -72,6 +74,20 @@ export function AppShell({
     }
   }, [cargando, usuario, rol, router]);
 
+  useEffect(() => {
+    if (!usuario || usuario.rol !== "vendedor") {
+      setNotificaciones([]);
+      return;
+    }
+    let activo = true;
+    api<Notificacion[]>("notificacionesVendedor").then((r) => {
+      if (activo && r.ok) setNotificaciones(r.data);
+    });
+    return () => {
+      activo = false;
+    };
+  }, [usuario]);
+
   if (cargando || !usuario) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[color:var(--color-neutral)]">
@@ -86,41 +102,44 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-[color:var(--color-neutral)]">
       {/* Sidebar desktop */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-primary)] md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[288px] flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-primary)] sm:flex">
         <SidebarContenido items={items} pathname={pathname} rol={rolEfectivo} />
       </aside>
 
       {/* Sidebar móvil */}
       {movilAbierto && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-40 sm:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMovilAbierto(false)} />
-          <aside className="absolute inset-y-0 left-0 flex w-[248px] flex-col bg-[color:var(--color-primary)]">
+          <aside className="absolute inset-y-0 left-0 flex w-[min(288px,86vw)] flex-col bg-[color:var(--color-primary)]">
             <SidebarContenido items={items} pathname={pathname} rol={rolEfectivo} onNavigate={() => setMovilAbierto(false)} />
           </aside>
         </div>
       )}
 
       {/* Contenido */}
-      <div className="md:pl-[248px]">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 sm:px-6">
+      <div className="sm:pl-[288px]">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 sm:px-6">
           <button
             type="button"
-            className="arca-btn arca-btn-ghost p-2 md:hidden"
+            className="arca-btn arca-btn-ghost h-9 w-9 shrink-0 p-0 sm:hidden"
             onClick={() => setMovilAbierto(true)}
             aria-label="Menú"
           >
             <Menu size={18} />
           </button>
-          <div className="hidden md:block" />
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-[color:var(--color-text-muted)]">{usuario.email}</span>
+          <div className="min-w-0 flex-1" />
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            {rolEfectivo === "vendedor" && <NotificacionesBell notificaciones={notificaciones} />}
+            <span className="hidden max-w-[180px] truncate text-[13px] text-[color:var(--color-text-muted)] min-[420px]:inline">
+              {usuario.email}
+            </span>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--color-tertiary-light)] text-[12px] font-semibold text-[color:var(--color-primary)]">
               {iniciales(usuario.email)}
             </span>
             <button
               type="button"
               onClick={salir}
-              className="arca-btn arca-btn-ghost p-2"
+              className="arca-btn arca-btn-ghost h-9 w-9 p-0"
               title="Cerrar sesión"
               aria-label="Cerrar sesión"
             >
@@ -128,7 +147,7 @@ export function AppShell({
             </button>
           </div>
         </header>
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
       </div>
     </div>
   );
@@ -159,14 +178,14 @@ function SidebarContenido({
               href={href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] font-medium transition",
+                "flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-[13.5px] font-medium leading-tight transition",
                 activo
                   ? "bg-white/15 text-white"
                   : "text-white/65 hover:bg-white/8 hover:text-white",
               )}
             >
-              <Icon size={17} />
-              {label}
+              <Icon size={17} className="shrink-0" />
+              <span className="min-w-0">{label}</span>
             </Link>
           );
         })}

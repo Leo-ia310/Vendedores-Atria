@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users2, ShoppingBag, Wallet, TrendingUp, BadgeCheck, Copy, ArrowRight } from "lucide-react";
+import { Users2, ShoppingBag, Wallet, TrendingUp, BadgeCheck, Copy, ArrowRight, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Card } from "@/components/ui/Card";
@@ -11,7 +11,14 @@ import { api } from "@/lib/api";
 import { formatearUSD, formatearFecha } from "@/lib/utils";
 
 type Dashboard = {
-  vendedor: { codigoVendedor: string; codigoReferido: string; nivel: string; estado: string; fechaCertificacion: string };
+  vendedor: {
+    codigoVendedor: string;
+    codigoReferido: string;
+    linkReferido: string;
+    nivel: string;
+    estado: string;
+    fechaCertificacion: string;
+  };
   kpis: {
     prospectos: number; clientesActivos: number; ventasCerradas: number;
     comisionesPendientes: number; comisionesPagadas: number; tasaConversion: number;
@@ -66,13 +73,33 @@ export default function PanelResumen() {
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => { navigator.clipboard?.writeText(v.codigoReferido); toast("Código de referido copiado.", "success"); }}
-              className="arca-btn arca-btn-secondary"
-            >
-              <Copy size={14} /> Referido: {v.codigoReferido}
-            </button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[420px]">
+              <div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2">
+                <p className="text-label">Link de referido</p>
+                <p className="mt-1 break-all text-[13px] font-medium text-[color:var(--color-text-primary)]">
+                  {v.linkReferido}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard?.writeText(v.linkReferido); toast("Link de referido copiado.", "success"); }}
+                  className="arca-btn arca-btn-secondary flex-1 sm:flex-none"
+                >
+                  <Copy size={14} /> Copiar link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard?.writeText(v.codigoReferido); toast("Código de referido copiado.", "success"); }}
+                  className="arca-btn arca-btn-ghost flex-1 sm:flex-none"
+                >
+                  <Copy size={14} /> {v.codigoReferido}
+                </button>
+                <Link href={v.linkReferido} target="_blank" className="arca-btn arca-btn-ghost flex-1 sm:flex-none">
+                  <ExternalLink size={14} /> Abrir
+                </Link>
+              </div>
+            </div>
           </div>
         </Card>
       )}
@@ -88,7 +115,7 @@ export default function PanelResumen() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <AccesoRapido href="/panel/crm" titulo="Registrar prospecto" texto="Agrega y da seguimiento a tus oportunidades." icon={Users2} />
-        <AccesoRapido href="/panel/ventas" titulo="Registrar venta" texto="Envía una venta a validación." icon={ShoppingBag} />
+        <AccesoRapido href="/panel/ventas" titulo="Ver ventas pagadas" texto="Revisa clientes atribuidos por tu link." icon={ShoppingBag} />
         <AccesoRapido href="/panel/comisiones" titulo="Ver comisiones" texto="Revisa tus comisiones y su estado." icon={Wallet} />
       </div>
     </>

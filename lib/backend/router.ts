@@ -104,6 +104,8 @@ export async function runBackendAction<T = unknown>(
         return await conSesion(token, async (u) => certificar(u, ctx) as T);
       case "dashboardVendedor":
         return await conRol(token, "vendedor", async (u) => dashboardVendedor(u) as T);
+      case "notificacionesVendedor":
+        return await conRol(token, "vendedor", async (u) => notificacionesVendedor(u) as T);
       case "listarProspectos":
         return await conRol(token, "vendedor", async (u) => listarProspectos(u) as T);
       case "crearProspecto":
@@ -124,6 +126,8 @@ export async function runBackendAction<T = unknown>(
         return ok(await registrarChat(payload, token) as T);
       case "registrarPreguntaNoResuelta":
         return ok(await registrarPreguntaNoResuelta(payload, token) as T);
+      case "registrarVentaReferida":
+        return ok(await registrarVentaReferida(payload, ctx) as T);
       case "adminListar":
         return await conRol(token, "admin", async () => adminListar(payload) as T);
       case "adminCandidato":
@@ -915,6 +919,23 @@ async function sellerDeUsuario(user: UserRow) {
   return seller;
 }
 
+function atriaPublicBaseUrl() {
+  return (process.env.NEXT_PUBLIC_ATRIA_APP_URL || "https://arca.onl").replace(/\/+$/, "");
+}
+
+function linkReferidoDeVendedor(seller: AnyRow) {
+  const code = encodeURIComponent(String(seller.CodigoReferido || seller.CodigoVendedor || ""));
+  return `${atriaPublicBaseUrl()}/registro?ref=${code}`;
+}
+
+function normalizarCodigoReferido(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, "")
+    .slice(0, 80);
+}
+
 async function dashboardVendedor(user: UserRow) {
   const seller = await sellerDeUsuario(user);
   const [prospects, sales, commissions] = await Promise.all([
@@ -931,6 +952,7 @@ async function dashboardVendedor(user: UserRow) {
     vendedor: {
       codigoVendedor: seller.CodigoVendedor,
       codigoReferido: seller.CodigoReferido,
+      linkReferido: linkReferidoDeVendedor(seller),
       nivel: seller.Nivel,
       estado: seller.Estado,
       fechaCertificacion: seller.FechaCertificacion,
@@ -944,6 +966,57 @@ async function dashboardVendedor(user: UserRow) {
       tasaConversion: prospects.length ? Math.round((won / prospects.length) * 100) : 0,
     },
   };
+}
+
+async function notificacionesVendedor(user: UserRow) {
+  const seller = await sellerDeUsuario(user);
+  const [prospects, sales, commissions] = await Promise.all([
+    rowsWhere<AnyRow>("Prospectos", "SellerId", seller.SellerId),
+    rowsWhere<AnyRow>("Ventas", "SellerId", seller.SellerId),
+    rowsWhere<AnyRow>("Comisiones", "SellerId", seller.SellerId),
+  ]);
+  const today = new Date().toISOString().slice(0, 10);
+  const recentThreshold = Date.now() - 1000 * 60 * 60 * 24 * 7;
+  const followUps = prospects.filter((p) => {
+    const stage = String(p.Etapa || "");
+    return Boolean(p.FechaSeguimiento) &&
+      String(p.FechaSeguimiento).slice(0, 10) <= today &&
+      !["ganado", "perdido"].includes(stage);
+  }).length;
+  const paidSales = sales.filter((s) => {
+    const timestamp = new Date(s.FechaVenta || s.FechaValidacion || 0).getTime();
+    return String(s.Estado) === "aprobada" && Number.isFinite(timestamp) && timestamp >= recentThreshold;
+  }).length;
+  const pendingCommissions = commissions.filter((c) => ["pendiente", "aprobada"].includes(String(c.Estado))).length;
+  const notifications: Array<{ id: string; titulo: string; detalle?: string; href: string; tono: "error" | "warning" | "info" | "success" }> = [];
+  if (followUps > 0) {
+    notifications.push({
+      id: "seguimientos-vencidos",
+      titulo: `${followUps} ${followUps === 1 ? "seguimiento pendiente" : "seguimientos pendientes"}`,
+      detalle: "Revisa tu CRM y actualiza la próxima acción",
+      href: "/panel/crm",
+      tono: "warning",
+    });
+  }
+  if (paidSales > 0) {
+    notifications.push({
+      id: "ventas-pagadas",
+      titulo: `${paidSales} ${paidSales === 1 ? "venta pagada atribuida" : "ventas pagadas atribuidas"}`,
+      detalle: "Consulta el historial generado por tu link",
+      href: "/panel/ventas",
+      tono: "success",
+    });
+  }
+  if (pendingCommissions > 0) {
+    notifications.push({
+      id: "comisiones-pendientes",
+      titulo: `${pendingCommissions} ${pendingCommissions === 1 ? "comisión pendiente" : "comisiones pendientes"}`,
+      detalle: "Dales seguimiento hasta que se marquen como pagadas",
+      href: "/panel/comisiones",
+      tono: "info",
+    });
+  }
+  return notifications;
 }
 
 async function listarProspectos(user: UserRow) {
@@ -1027,30 +1100,87 @@ async function registrarActividad(user: UserRow, payload: Payload) {
 
 async function listarVentas(user: UserRow) {
   const seller = await sellerDeUsuario(user);
-  return rowsWhere("Ventas", "SellerId", seller.SellerId, "FechaVenta");
+  const sales = await rowsWhere<AnyRow>("Ventas", "SellerId", seller.SellerId, "FechaVenta");
+  return sales.filter((sale) => String(sale.Estado) === "aprobada");
 }
 
 async function registrarVenta(user: UserRow, payload: Payload) {
-  if (String(await configGet("mantenimiento")) === "1") throw new PublicError("MANTENIMIENTO", "Sistema en mantenimiento.");
-  const seller = await sellerDeUsuario(user);
+  void user;
+  void payload;
+  throw new PublicError("VENTA_AUTOMATICA", "Las ventas se registran automáticamente cuando Atria confirma el pago del cliente.");
+}
+
+async function registrarVentaReferida(payload: Payload, ctx: BackendContext) {
+  const expectedSecret = process.env.ATRIA_REFERRAL_WEBHOOK_SECRET;
+  if (!expectedSecret || String(payload.secret || "") !== expectedSecret) {
+    throw new PublicError("PROHIBIDO", "No autorizado.");
+  }
+  if (String(await configGet("mantenimiento")) === "1") {
+    throw new PublicError("MANTENIMIENTO", "Sistema en mantenimiento.");
+  }
+
+  const referralCode = normalizarCodigoReferido(payload.codigoReferido || payload.codigoVendedor);
+  if (!referralCode) throw new PublicError("DATOS", "Código de referido requerido.");
+
+  let seller = await rowBy<AnyRow>("Vendedores", "CodigoReferido", referralCode);
+  if (!seller) seller = await rowBy<AnyRow>("Vendedores", "CodigoVendedor", referralCode);
+  if (!seller || String(seller.Estado || "activo") !== "activo") {
+    throw new PublicError("NO_VENDEDOR", "Vendedor no encontrado o inactivo.");
+  }
+
   const amount = Number(payload.monto || 0);
-  if (!payload.cliente || !payload.plan || amount <= 0) throw new PublicError("DATOS", "Cliente, plan y monto (>0) son obligatorios.");
+  if (!payload.cliente || !payload.plan || amount <= 0) {
+    throw new PublicError("DATOS", "Cliente, plan y monto (>0) son obligatorios.");
+  }
+
+  const externalRef = String(payload.referenciaExterna || "").trim();
+  if (externalRef) {
+    const duplicate = await rowBy<AnyRow>("Ventas", "ReferenciaExterna", externalRef);
+    if (duplicate) {
+      return { saleId: duplicate.SaleId, estado: duplicate.Estado, duplicada: true };
+    }
+  }
+
+  const tipoVenta = String(payload.tipoVenta || "primera") === "renovacion" ? "renovacion" : "primera";
   const saleId = id("sale");
-  await insertRow("Ventas", {
+  const sale = {
     SaleId: saleId,
     SellerId: seller.SellerId,
     ProspectId: payload.prospectId || "",
-    Cliente: payload.cliente,
-    Plan: payload.plan,
+    Cliente: String(payload.cliente || ""),
+    ClienteEmail: String(payload.clienteEmail || "").toLowerCase().trim(),
+    EmpresaCliente: String(payload.empresaCliente || ""),
+    Plan: String(payload.plan || ""),
     Monto: amount,
-    TipoVenta: payload.tipoVenta || "primera",
+    TipoVenta: tipoVenta,
     FechaVenta: payload.fechaVenta || now(),
-    Estado: "pendiente",
-    Comprobante: payload.comprobante || "",
-    FechaValidacion: "",
-    ValidadoPor: "",
+    Estado: "aprobada",
+    Comprobante: payload.comprobante || `Pago confirmado por ${payload.origen || "Atria"}`,
+    FechaValidacion: now(),
+    ValidadoPor: "Atria",
+    ReferenciaExterna: externalRef,
+    Origen: String(payload.origen || "atria"),
+    CodigoReferido: referralCode,
+  };
+  await insertRow("Ventas", sale);
+  const commissionInfo = await calcularComisionDeVenta(sale);
+
+  const approvedSales = (await rowsWhere<AnyRow>("Ventas", "SellerId", seller.SellerId))
+    .filter((s) => String(s.Estado) === "aprobada").length;
+  await updateRows("Vendedores", "SellerId", seller.SellerId, {
+    VentasTotales: approvedSales,
+    ClientesActivos: approvedSales,
   });
-  return { saleId, estado: "pendiente" };
+  await auditar(
+    "atria",
+    "venta_referida_pagada",
+    "venta",
+    saleId,
+    null,
+    { referralCode, externalRef, amount, plan: payload.plan },
+    ctx.ip,
+  );
+  return { saleId, estado: "aprobada", comision: commissionInfo };
 }
 
 async function listarComisiones(user: UserRow) {

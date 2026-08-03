@@ -178,6 +178,8 @@ create table if not exists public."Ventas" (
   "SellerId" text,
   "ProspectId" text,
   "Cliente" text,
+  "ClienteEmail" text,
+  "EmpresaCliente" text,
   "Plan" text,
   "Monto" double precision default 0,
   "TipoVenta" text,
@@ -185,8 +187,17 @@ create table if not exists public."Ventas" (
   "Estado" text,
   "Comprobante" text,
   "FechaValidacion" text,
-  "ValidadoPor" text
+  "ValidadoPor" text,
+  "ReferenciaExterna" text,
+  "Origen" text,
+  "CodigoReferido" text
 );
+
+alter table public."Ventas" add column if not exists "ClienteEmail" text;
+alter table public."Ventas" add column if not exists "EmpresaCliente" text;
+alter table public."Ventas" add column if not exists "ReferenciaExterna" text;
+alter table public."Ventas" add column if not exists "Origen" text;
+alter table public."Ventas" add column if not exists "CodigoReferido" text;
 
 create table if not exists public."Comisiones" (
   "CommissionId" text primary key,
@@ -258,6 +269,10 @@ create table if not exists public."RecuperacionPassword" (
 create index if not exists "idx_Usuarios_Email" on public."Usuarios" ("Email");
 create index if not exists "idx_Sesiones_TokenHash" on public."Sesiones" ("TokenHash");
 create index if not exists "idx_Progreso_CandidateId" on public."Progreso" ("CandidateId");
+create index if not exists "idx_Vendedores_CodigoReferido" on public."Vendedores" ("CodigoReferido");
+create index if not exists "idx_Vendedores_CodigoVendedor" on public."Vendedores" ("CodigoVendedor");
+create unique index if not exists "idx_Ventas_ReferenciaExterna" on public."Ventas" ("ReferenciaExterna") where "ReferenciaExterna" is not null and "ReferenciaExterna" <> '';
+create index if not exists "idx_Ventas_SellerId_Estado" on public."Ventas" ("SellerId", "Estado");
 create index if not exists "idx_IntentosExamen_CandidateId" on public."IntentosExamen" ("CandidateId");
 create index if not exists "idx_Preguntas_ModuleId" on public."Preguntas" ("ModuleId");
 create index if not exists "idx_Vendedores_CandidateId" on public."Vendedores" ("CandidateId");
