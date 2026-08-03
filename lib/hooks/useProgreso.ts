@@ -19,6 +19,8 @@ export type EstadoAcademia = {
   intentos: IntentoRow[];
 };
 
+const FINAL_ACADEMY_MODULE_ID = "mod15";
+
 export function useProgreso() {
   const [data, setData] = useState<EstadoAcademia>({ progreso: [], intentos: [] });
   const [cargando, setCargando] = useState(true);
@@ -50,9 +52,11 @@ export function useProgreso() {
   const esAprobado = (value: unknown) =>
     value === true || ["true", "1", "si", "sí"].includes(String(value).toLowerCase());
 
+  const examenIdParaModulo = (moduleId: string) => moduleId === FINAL_ACADEMY_MODULE_ID ? "final" : moduleId;
+
   const examenAprobado = useCallback(
     (moduleId: string) =>
-      data.intentos.some((a) => a.ModuleId === moduleId && esAprobado(a.Aprobado)),
+      data.intentos.some((a) => a.ModuleId === examenIdParaModulo(moduleId) && esAprobado(a.Aprobado)),
     [data.intentos],
   );
 

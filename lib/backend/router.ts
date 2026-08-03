@@ -56,6 +56,8 @@ const ADMIN_TABLES = [
   "Progreso",
 ];
 
+const FINAL_ACADEMY_MODULE_ID = "mod15";
+
 export async function runBackendAction<T = unknown>(
   action: string,
   payload: Payload = {},
@@ -296,8 +298,7 @@ async function configGet(key: string): Promise<string | undefined> {
 }
 
 async function configNum(key: string, fallback: number) {
-  const value = Number(await configGet(key));
-  return Number.isFinite(value) ? value : fallback;
+  return numberFrom(await configGet(key)) ?? fallback;
 }
 
 async function configSet(key: string, value: string, description?: string) {
@@ -725,7 +726,7 @@ async function enviarExamen(user: UserRow, payload: Payload) {
   const module = (await getModuleRows()).find((m) => String(m.ModuleId) === moduleId);
   const minimum = moduleId === "final"
     ? await configNum("puntaje_minimo", 85)
-    : Number(module?.PuntajeMinimo || await configNum("puntaje_minimo", 85));
+    : numberFrom(module?.PuntajeMinimo) ?? await configNum("puntaje_minimo", 85);
   const approved = score >= minimum;
 
   await insertRow("IntentosExamen", {
@@ -754,6 +755,14 @@ async function enviarExamen(user: UserRow, payload: Payload) {
 
 function esVerdadero(value: unknown) {
   return value === true || ["true", "1", "si", "sí"].includes(String(value).toLowerCase());
+}
+
+function numberFrom(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const normalized = String(value ?? "").trim().replace("%", "").replace(",", ".");
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function grade(question: QuestionRow, answer: unknown) {
@@ -806,18 +815,27 @@ async function aceptarTerminos(user: UserRow, payload: Payload, ctx: BackendCont
 }
 
 async function evaluarRequisitos(candidateId: string) {
-  const [modules, progress, attempts, terms, simulations] = await Promise.all([
+  const [modules, initialProgress, initialAttempts, terms, simulations] = await Promise.all([
     getModuleRows(),
     rowsWhere<AnyRow>("Progreso", "CandidateId", candidateId),
     rowsWhere<AnyRow>("IntentosExamen", "CandidateId", candidateId),
     rowsWhere<AnyRow>("TerminosAceptados", "CandidateId", candidateId),
     rowsWhere<AnyRow>("Simulaciones", "CandidateId", candidateId),
   ]);
-  const required = modules.filter((m) => String(m.Obligatorio) === "true");
+  let progress = initialProgress;
+  let attempts = initialAttempts;
+  if (await repararProgresoDesdeIntentos(candidateId, progress, attempts)) {
+    [progress, attempts] = await Promise.all([
+      rowsWhere<AnyRow>("Progreso", "CandidateId", candidateId),
+      rowsWhere<AnyRow>("IntentosExamen", "CandidateId", candidateId),
+    ]);
+  }
+  const required = modules.filter((m) => esVerdadero(m.Obligatorio));
+  const requiredModuleExams = required.filter((m) => String(m.ModuleId) !== FINAL_ACADEMY_MODULE_ID);
   const moduloCompleto = (moduleId: string) =>
     progress.some((p) => String(p.ModuleId) === moduleId && String(p.Estado) === "completado");
   const examenAprobado = (moduleId: string) =>
-    attempts.some((a) => String(a.ModuleId) === moduleId && String(a.Aprobado) === "true");
+    attempts.some((a) => String(a.ModuleId) === moduleId && esVerdadero(a.Aprobado));
   const requiredDocs = ["terminos", "comisiones", "privacidad", "conducta"];
   const bestFinal = attempts
     .filter((a) => String(a.ModuleId) === "final")
@@ -825,7 +843,7 @@ async function evaluarRequisitos(candidateId: string) {
   const minimum = await configNum("puntaje_minimo", 85);
   const requisitos: AnyRow = {
     modulosCompletos: required.length > 0 && required.every((m) => moduloCompleto(String(m.ModuleId))),
-    examenesAprobados: required.length > 0 && required.every((m) => examenAprobado(String(m.ModuleId))),
+    examenesAprobados: requiredModuleExams.length > 0 && requiredModuleExams.every((m) => examenAprobado(String(m.ModuleId))),
     examenFinalAprobado: examenAprobado("final"),
     terminosAceptados: requiredDocs.every((doc) => terms.some((t) => String(t.TipoDocumento) === doc)),
     simulacionesCompletas: simulations.length >= 3,
