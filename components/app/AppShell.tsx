@@ -129,7 +129,9 @@ export function AppShell({
           </button>
           <div className="min-w-0 flex-1" />
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            {rolEfectivo === "vendedor" && <NotificacionesBell notificaciones={notificaciones} />}
+            {(rolEfectivo === "vendedor" || rolEfectivo === "admin") && (
+              <NotificacionesBell notificaciones={notificaciones} />
+            )}
             <span className="hidden max-w-[180px] truncate text-[13px] text-[color:var(--color-text-muted)] min-[420px]:inline">
               {usuario.email}
             </span>
@@ -139,11 +141,11 @@ export function AppShell({
             <button
               type="button"
               onClick={salir}
-              className="arca-btn arca-btn-ghost h-9 w-9 p-0"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-2)] text-[color:var(--color-error)] shadow-[var(--shadow-sm)] transition hover:border-[color:var(--color-error)] hover:bg-[color:var(--color-error-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-error)]"
               title="Cerrar sesión"
               aria-label="Cerrar sesión"
             >
-              <LogOut size={16} />
+              <LogOut size={18} />
             </button>
           </div>
         </header>

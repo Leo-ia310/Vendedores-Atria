@@ -45,14 +45,15 @@ export function NotificacionesBell({
         type="button"
         onClick={() => setAbierto((actual) => !actual)}
         className={cn(
-          "arca-btn arca-btn-ghost relative h-9 w-9 p-0",
-          hay && "text-[color:var(--color-primary)]",
+          "relative flex h-10 w-10 items-center justify-center rounded-md border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-2)] text-[color:var(--color-primary)] shadow-[var(--shadow-sm)] transition hover:border-[color:var(--color-secondary)] hover:bg-[color:var(--color-surface)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-secondary)]",
+          hay && "border-[color:var(--color-secondary)] bg-[color:var(--color-tertiary-light)]",
         )}
         aria-label={hay ? `${notificaciones.length} notificaciones` : "Notificaciones"}
+        title="Notificaciones"
       >
-        {hay ? <BellRing size={16} /> : <Bell size={16} />}
+        {hay ? <BellRing size={18} /> : <Bell size={18} />}
         {hay && (
-          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-error)] px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--color-error)] px-1 text-[10px] font-bold text-white">
             {notificaciones.length > 9 ? "9+" : notificaciones.length}
           </span>
         )}
