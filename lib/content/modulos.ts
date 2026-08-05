@@ -611,9 +611,17 @@ export const MODULOS: Modulo[] = [
         p: [],
         lista: [
           "Solo ventas aprobadas y verificadas generan comisión.",
+          "Si un cliente entra con tu link de referido y compra, la venta se atribuye a ti aunque complete la compra desde otra ubicación o dispositivo, siempre que siga asociada a ese referido.",
           "Ventas pendientes/rechazadas: sin comisión.",
           "Reembolso: comisión anulada o descontada.",
           "Duplicados: revisión administrativa.",
+        ],
+      },
+      {
+        h: "Atribución por link de referido",
+        p: [
+          "Tu link de referido identifica al cliente que llegó por tu recomendación. Si esa persona entra con tu link y luego compra, la comisión se acumula a tu cuenta siempre que la venta quede aprobada y no sea anulada.",
+          "La ubicación física del cliente no importa: puede comprar desde cualquier ciudad o país. Lo importante es que la compra quede asociada al referido correcto y pase la validación de ATRIA.",
         ],
       },
       {
@@ -621,8 +629,8 @@ export const MODULOS: Modulo[] = [
         p: ["Las comisiones se programan y pagan según corte y método. Tú eres responsable de tus impuestos personales."],
       },
     ],
-    resumen: ["15% primera venta / 5% renovación.", "Solo cuenta lo aprobado y verificado.", "El cálculo lo hace el backend."],
-    checklist: ["Sé los porcentajes.", "Entiendo qué venta genera comisión.", "Sé cómo y cuándo se paga."],
+    resumen: ["15% primera venta / 5% renovación.", "El link de referido atribuye la compra al asesor aunque el cliente compre desde otra ubicación.", "Solo cuenta lo aprobado y verificado.", "El cálculo lo hace el backend."],
+    checklist: ["Sé los porcentajes.", "Entiendo qué venta genera comisión.", "Sé cómo funciona la atribución por link de referido.", "Sé cómo y cuándo se paga."],
     recursos: ["Política de comisiones"],
     tieneExamen: true,
   },

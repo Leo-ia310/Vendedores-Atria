@@ -94,6 +94,7 @@ export const DEFAULT_QUESTIONS: QuestionRow[] = [
   q("mod13", "opcion", "¿Cuál es la comisión de la primera venta?", ["5%", "10%", "15%", "20%"], "15%", "Primera venta 15%, renovación 5%."),
   q("mod13", "opcion", "¿Cuál es la comisión por renovación?", ["5%", "10%", "15%", "0%"], "5%", "Las renovaciones aprobadas pagan 5%."),
   q("mod13", "vf", "Una venta rechazada o reembolsada no debe generar comisión vigente.", ["Verdadero", "Falso"], "Verdadero", "Solo las ventas aprobadas y verificadas generan comisiones."),
+  q("mod13", "vf", "Si un cliente entra con tu link de referido y compra desde otra ubicación, la comisión se acumula a tu cuenta si la venta es aprobada.", ["Verdadero", "Falso"], "Verdadero", "El link de referido atribuye la compra al asesor, sin importar desde dónde compre el cliente, siempre que la venta sea válida y aprobada."),
 
   q("mod14", "vf", "Medir la conversión ayuda a mejorar.", ["Verdadero", "Falso"], "Verdadero", "Los indicadores guían la mejora continua."),
   q("mod14", "opcion", "¿Qué métrica ayuda a revisar el embudo?", ["Prospectos, demos, propuestas y cierres", "Solo likes personales", "Color favorito", "Cantidad de mensajes sin respuesta"], "Prospectos, demos, propuestas y cierres", "El embudo muestra dónde mejorar."),
