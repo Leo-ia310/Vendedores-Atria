@@ -10,6 +10,13 @@
 
 export type Seccion = { h: string; p: string[]; lista?: string[] };
 
+export type RecursoDescargable = {
+  titulo: string;
+  descripcion?: string;
+  href: string;
+  formato?: string;
+};
+
 export type Modulo = {
   id: string;
   orden: number;
@@ -19,13 +26,14 @@ export type Modulo = {
   tiempo: string;
   obligatorio: boolean;
   video?: string; // etiqueta del placeholder de video
+  videoSrc?: string;
   intro: string;
   secciones: Seccion[];
   ejemplos?: string[];
   erroresComunes?: string[];
   resumen: string[];
   checklist: string[];
-  recursos?: string[];
+  recursos?: Array<string | RecursoDescargable>;
   tieneExamen: boolean;
 };
 
@@ -38,7 +46,8 @@ export const MODULOS: Modulo[] = [
     nivel: "Principiante",
     tiempo: "15 min",
     obligatorio: true,
-    video: "Aquí va un video de bienvenida",
+    video: "Video 1: Bienvenida a ATRIA",
+    videoSrc: "/recursos/modulo-1/Modulo-1.mp4",
     intro:
       "Bienvenido al programa de vendedores de ATRIA. Antes de vender, hay que creer en lo que se vende y entender a quién ayuda. En este módulo conocerás la razón de ser de ATRIA y qué se espera de ti.",
     secciones: [
@@ -79,6 +88,20 @@ export const MODULOS: Modulo[] = [
       "Sé mencionar cuándo aplica a un comercio y cuándo a un restaurante.",
       "Conozco la misión y los valores.",
       "Entiendo qué se espera de mí como asesor.",
+    ],
+    recursos: [
+      {
+        titulo: "Video 1: Bienvenida a ATRIA",
+        descripcion: "Archivo MP4 del primer video del módulo.",
+        href: "/recursos/modulo-1/Modulo-1.mp4",
+        formato: "MP4",
+      },
+      {
+        titulo: "PDF: Bienvenida a ATRIA",
+        descripcion: "Material de apoyo del módulo 1.",
+        href: "/recursos/modulo-1/Modulo-01-Bienvenida-a-ATRIA.pdf",
+        formato: "PDF",
+      },
     ],
     tieneExamen: true,
   },
@@ -142,7 +165,27 @@ export const MODULOS: Modulo[] = [
       "Sé qué problema resuelve cada uno.",
       "Puedo dar un ejemplo por módulo.",
     ],
-    recursos: ["Ficha de producto (PDF)", "Comparativa Excel vs ATRIA"],
+    recursos: [
+      {
+        titulo: "PDF: Dominio del producto",
+        descripcion: "Material de apoyo del módulo 2.",
+        href: "/recursos/modulo-2/Modulo-02-Dominio-del-producto.pdf",
+        formato: "PDF",
+      },
+      {
+        titulo: "Presentación: Dominio del producto",
+        descripcion: "Deck editable del módulo 2.",
+        href: "/recursos/modulo-2/Modulo-02-Dominio-del-producto.pptx",
+        formato: "PPTX",
+      },
+      {
+        titulo: "Guion: Dominio del producto",
+        descripcion: "Guion editable para grabación o facilitación.",
+        href: "/recursos/modulo-2/Guion-Modulo-02-Dominio-del-producto.docx",
+        formato: "DOCX",
+      },
+      "Comparativa Excel vs ATRIA",
+    ],
     tieneExamen: true,
   },
   {
@@ -357,7 +400,26 @@ export const MODULOS: Modulo[] = [
     erroresComunes: ["Demo genérica sin diagnóstico.", "No definir el siguiente paso al terminar."],
     resumen: ["Personaliza según el diagnóstico.", "Función → problema → beneficio.", "Cierra con próximo paso."],
     checklist: ["Sé armar una demo de 15 min.", "Conecto función con problema.", "Defino el próximo paso."],
-    recursos: ["Guion de demo 15/30/45"],
+    recursos: [
+      {
+        titulo: "PDF: Guion de presentación y demostración",
+        descripcion: "Material de apoyo del módulo 7.",
+        href: "/recursos/modulo-7/Guion-Modulo-07-Presentacion-y-demostracion.pdf",
+        formato: "PDF",
+      },
+      {
+        titulo: "Presentación: Presentación y demostración",
+        descripcion: "Deck editable del módulo 7.",
+        href: "/recursos/modulo-7/Modulo-07-Presentacion-y-demostracion.pptx",
+        formato: "PPTX",
+      },
+      {
+        titulo: "Guion: Presentación y demostración",
+        descripcion: "Guion editable para grabación o facilitación.",
+        href: "/recursos/modulo-7/Guion-Modulo-07-Presentacion-y-demostracion.docx",
+        formato: "DOCX",
+      },
+    ],
     tieneExamen: true,
   },
   {

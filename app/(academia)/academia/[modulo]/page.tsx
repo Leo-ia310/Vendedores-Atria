@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  PlayCircle, Check, Lightbulb, AlertTriangle, ListChecks, FileText, ClipboardCheck, ArrowRight,
+  PlayCircle, Check, Lightbulb, AlertTriangle, ListChecks, FileText, ClipboardCheck, ArrowRight, Download,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Button } from "@/components/ui/Button";
@@ -88,14 +88,30 @@ export default function ModuloPage({
         <p className="text-[15px] leading-7 text-[color:var(--color-text-secondary)]">{m.intro}</p>
 
         {m.video && (
-          <div className="relative aspect-video w-full overflow-hidden rounded-[12px] border border-[color:var(--color-border)] bg-[color:var(--color-primary)]">
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
-              <PlayCircle size={44} className="text-white/85" />
-              <p className="px-6 text-[12px] font-semibold uppercase tracking-[0.14em] text-white/70">
+          <section>
+            <div className="overflow-hidden rounded-[8px] border border-[color:var(--color-border)] bg-black">
+              {m.videoSrc ? (
+                <video controls className="aspect-video w-full bg-black" preload="metadata" aria-label={m.video}>
+                  <source src={m.videoSrc} type="video/mp4" />
+                  Tu navegador no puede reproducir este video.
+                </video>
+              ) : (
+                <div className="relative aspect-video w-full bg-[color:var(--color-primary)]">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
+                    <PlayCircle size={44} className="text-white/85" />
+                    <p className="px-6 text-[12px] font-semibold uppercase tracking-[0.14em] text-white/70">
+                      {m.video}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {m.videoSrc && (
+              <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-[color:var(--color-text-muted)]">
                 {m.video}
               </p>
-            </div>
-          </div>
+            )}
+          </section>
         )}
 
         {m.secciones.map((s) => (
@@ -186,12 +202,35 @@ export default function ModuloPage({
               <FileText size={18} className="text-[color:var(--color-secondary)]" />
               <h2 className="text-[17px] font-semibold">Recursos descargables</h2>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {m.recursos.map((r) => (
-                <span key={r} className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-1.5 text-[13px] text-[color:var(--color-text-secondary)]">
-                  {r} <span className="text-[color:var(--color-text-muted)]">· pendiente</span>
-                </span>
-              ))}
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {m.recursos.map((r) => {
+                if (typeof r === "string") {
+                  return (
+                    <span key={r} className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-[13px] text-[color:var(--color-text-secondary)]">
+                      {r} <span className="text-[color:var(--color-text-muted)]">· pendiente</span>
+                    </span>
+                  );
+                }
+
+                return (
+                  <a
+                    key={r.href}
+                    href={r.href}
+                    download
+                    className="flex min-h-16 items-center justify-between gap-3 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-[13px] transition hover:border-[color:var(--color-secondary)] hover:bg-[color:var(--color-surface)]"
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-[color:var(--color-text-primary)]">{r.titulo}</span>
+                      {r.descripcion && (
+                        <span className="mt-0.5 block text-[12px] text-[color:var(--color-text-muted)]">{r.descripcion}</span>
+                      )}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1 text-[12px] font-semibold text-[color:var(--color-secondary)]">
+                      <Download size={14} /> {r.formato ?? "Descargar"}
+                    </span>
+                  </a>
+                );
+              })}
             </div>
           </section>
         )}
