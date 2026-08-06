@@ -40,6 +40,13 @@ const RECURSOS = [
     formato: "PPTX",
   },
   {
+    icon: Video,
+    titulo: "Video 7: Presentación y demostración",
+    desc: "Video del módulo 7.",
+    href: "/recursos/modulo-7/Maikel-Academia-Comercial-Arca-Modulo-07.mp4",
+    formato: "MP4",
+  },
+  {
     icon: FileText,
     titulo: "PDF: Guion de demostración",
     desc: "Material de apoyo del módulo 7.",

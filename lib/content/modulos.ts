@@ -369,7 +369,8 @@ export const MODULOS: Modulo[] = [
     nivel: "Intermedio",
     tiempo: "35 min",
     obligatorio: true,
-    video: "Aquí va un video de demostración comercial",
+    video: "Video 7: Presentación y demostración",
+    videoSrc: "/recursos/modulo-7/Maikel-Academia-Comercial-Arca-Modulo-07.mp4",
     intro: "Una buena demo no muestra todo: muestra lo que le importa al cliente que tienes enfrente.",
     secciones: [
       {
