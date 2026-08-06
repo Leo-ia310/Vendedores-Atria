@@ -19,6 +19,13 @@ const RECURSOS = [
     formato: "PDF",
   },
   {
+    icon: Video,
+    titulo: "Video 2: Dominio del producto",
+    desc: "Video del módulo 2.",
+    href: "/recursos/modulo-2/Academia-Comercial-Arca-Modulo-02.mp4",
+    formato: "MP4",
+  },
+  {
     icon: FileText,
     titulo: "PDF: Dominio del producto",
     desc: "Material de apoyo del módulo 2.",
@@ -31,13 +38,6 @@ const RECURSOS = [
     desc: "Deck editable del módulo 2.",
     href: "/recursos/modulo-2/Modulo-02-Dominio-del-producto.pptx",
     formato: "PPTX",
-  },
-  {
-    icon: BookMarked,
-    titulo: "Guion: Dominio del producto",
-    desc: "Guion editable del módulo 2.",
-    href: "/recursos/modulo-2/Guion-Modulo-02-Dominio-del-producto.docx",
-    formato: "DOCX",
   },
   {
     icon: FileText,

@@ -113,7 +113,8 @@ export const MODULOS: Modulo[] = [
     nivel: "Principiante",
     tiempo: "35 min",
     obligatorio: true,
-    video: "Aquí va un video demostrativo de ATRIA",
+    video: "Video 2: Dominio del producto",
+    videoSrc: "/recursos/modulo-2/Academia-Comercial-Arca-Modulo-02.mp4",
     intro:
       "No se vende lo que no se entiende. Aquí verás cada módulo de ATRIA: qué hace, qué problema resuelve y qué tipo de cliente lo necesita.",
     secciones: [
@@ -178,13 +179,6 @@ export const MODULOS: Modulo[] = [
         href: "/recursos/modulo-2/Modulo-02-Dominio-del-producto.pptx",
         formato: "PPTX",
       },
-      {
-        titulo: "Guion: Dominio del producto",
-        descripcion: "Guion editable para grabación o facilitación.",
-        href: "/recursos/modulo-2/Guion-Modulo-02-Dominio-del-producto.docx",
-        formato: "DOCX",
-      },
-      "Comparativa Excel vs ATRIA",
     ],
     tieneExamen: true,
   },
