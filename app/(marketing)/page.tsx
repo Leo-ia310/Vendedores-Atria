@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  PlayCircle,
   UserPlus,
   GraduationCap,
   ClipboardCheck,
@@ -76,21 +75,6 @@ const requisitos = [
   "No prometer funciones inexistentes", "No modificar precios sin autorización",
 ];
 
-function VideoPlaceholder({ etiqueta }: { etiqueta: string }) {
-  return (
-    <div className="group relative mx-auto aspect-video w-full max-w-3xl overflow-hidden rounded-[16px] border border-white/15 bg-[#0c0518]/80 shadow-[0_40px_110px_rgba(9,4,20,0.6)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(124,58,237,0.25),transparent_60%)]" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
-        <PlayCircle size={54} className="text-white/85 transition group-hover:scale-110" />
-        <p className="px-6 text-[13px] font-semibold uppercase tracking-[0.14em] text-white/70">
-          {etiqueta}
-        </p>
-        <p className="text-[12px] text-white/40">Contenedor listo para insertar el video</p>
-      </div>
-    </div>
-  );
-}
-
 function Section({
   id,
   eyebrow,
@@ -162,7 +146,15 @@ export default function LandingReclutamiento() {
           </div>
 
           <div className="mt-14">
-            <VideoPlaceholder etiqueta="Aquí va un video de presentación del programa" />
+            <div className="mx-auto aspect-video w-full max-w-3xl overflow-hidden rounded-[16px] border border-white/15 bg-[#0c0518]/80 shadow-[0_40px_110px_rgba(9,4,20,0.6)]">
+              <video
+                className="h-full w-full"
+                src="/recursos/Video-Principal/EL%20CAOS%20QUE%20CONOCES.mp4"
+                controls
+                playsInline
+                preload="metadata"
+              />
+            </div>
           </div>
         </div>
       </section>
