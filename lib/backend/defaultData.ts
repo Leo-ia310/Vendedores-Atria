@@ -8,7 +8,7 @@ export const CONFIG_DEFAULTS: Record<string, [string, string]> = {
   intentos_examen_final: ["0", "El examen final no tiene límite de intentos"],
   version_terminos: ["2026.08", "Versión vigente de términos y condiciones"],
   moneda: ["USD", "Moneda base de comisiones"],
-  whatsapp_soporte: ["50500000000", "WhatsApp de soporte"],
+  whatsapp_soporte: ["50588662303", "WhatsApp de soporte"],
   mantenimiento: ["0", "1 = modo mantenimiento activo"],
 };
 

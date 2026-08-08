@@ -28,6 +28,7 @@ export type AuthenticatedBackendUser = {
   Rol: string;
   Estado: string;
   DebeCambiarPassword: string;
+  OnboardingCompletado: string;
   __sessionId?: string;
 };
 
@@ -89,6 +90,8 @@ export async function runBackendAction<T = unknown>(
         return await conSesion(token, async (u) => ({ usuario: usuarioPublico(u), extra: await extraUsuario(u) }) as T);
       case "cambiarPassword":
         return await conSesion(token, async (u) => cambiarPassword(u, payload) as T);
+      case "completarOnboarding":
+        return await conSesion(token, async (u) => completarOnboarding(u) as T);
       case "obtenerModulos":
         return await conSesion(token, async () => getModuleRows() as T);
       case "obtenerProgreso":
@@ -330,6 +333,7 @@ function usuarioPublico(user: UserRow) {
     email: user.Email,
     rol: user.Rol,
     debeCambiarPassword: String(user.DebeCambiarPassword) === "true",
+    onboardingCompletado: String(user.OnboardingCompletado ?? "true") === "true",
   };
 }
 
@@ -390,6 +394,7 @@ async function crearUsuario(email: string, password: string, rol: string, candid
     Rol: rol || "candidato",
     Estado: "activo",
     DebeCambiarPassword: debeCambiar ? "true" : "false",
+    OnboardingCompletado: rol === "candidato" ? "false" : "true",
     UltimoAcceso: "",
     IntentosFallidos: 0,
     BloqueadoHasta: "",
@@ -460,6 +465,11 @@ async function cambiarPassword(user: UserRow, payload: Payload) {
   });
   await auditar(user.UserId, "cambio_password", "usuario", user.UserId, null, null, "");
   return { actualizada: true };
+}
+
+async function completarOnboarding(user: UserRow) {
+  await updateRows("Usuarios", "UserId", user.UserId, { OnboardingCompletado: "true" });
+  return { completado: true };
 }
 
 async function solicitarRecuperacion(payload: Payload, ctx: BackendContext) {

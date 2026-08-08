@@ -41,6 +41,7 @@ create table if not exists public."Usuarios" (
   "Rol" text,
   "Estado" text,
   "DebeCambiarPassword" text,
+  "OnboardingCompletado" text default 'true',
   "UltimoAcceso" text,
   "IntentosFallidos" integer default 0,
   "BloqueadoHasta" text,

@@ -11,7 +11,8 @@ export const MARCA = {
   producto: process.env.NEXT_PUBLIC_BRAND || "ATRIA",
   programa: process.env.NEXT_PUBLIC_PROGRAMA || "Academia Comercial ATRIA",
   emailSoporte: process.env.NEXT_PUBLIC_EMAIL_SOPORTE || "soporte@atria.app",
-  whatsappSoporte: process.env.NEXT_PUBLIC_WHATSAPP_SOPORTE || "50500000000",
+  whatsappSoporte: process.env.NEXT_PUBLIC_WHATSAPP_SOPORTE || "50588662303",
+  grupoWhatsApp: process.env.NEXT_PUBLIC_WHATSAPP_GRUPO || "https://chat.whatsapp.com/JLg2SfFrHZKDAr24FH5wdR",
   redes: {
     instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/",
     facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "https://www.facebook.com/",

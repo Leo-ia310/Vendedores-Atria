@@ -68,6 +68,10 @@ export function AppShell({
       router.replace("/cambiar-password");
       return;
     }
+    if (usuario.rol === "candidato" && !usuario.onboardingCompletado) {
+      router.replace("/onboarding");
+      return;
+    }
     if (rol) {
       const permitido = usuario.rol === rol || usuario.rol === "admin";
       if (!permitido) {

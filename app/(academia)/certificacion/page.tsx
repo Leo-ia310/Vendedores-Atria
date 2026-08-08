@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, XCircle, Award, Copy, KeyRound } from "lucide-react";
+import { CheckCircle2, XCircle, Award, Copy, KeyRound, MessageCircle, LifeBuoy } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Feedback";
 import { useToast } from "@/components/ui/Feedback";
 import { api } from "@/lib/api";
+import { MARCA } from "@/lib/config";
+import { enlaceWhatsApp } from "@/lib/utils";
 
 type Requisitos = {
   modulosCompletos: boolean;
@@ -116,6 +118,31 @@ export default function CertificacionPage() {
           <Link href="/login" className="arca-btn arca-btn-brand mt-5">
             Ir a iniciar sesión
           </Link>
+        </div>
+
+        <div className="arca-card mt-5 p-6">
+          <p className="text-[16px] font-semibold">Únete a la comunidad de vendedores</p>
+          <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
+            Entra al grupo de WhatsApp para novedades, dudas y apoyo entre vendedores certificados.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <a
+              href={MARCA.grupoWhatsApp}
+              target="_blank"
+              rel="noreferrer"
+              className="arca-btn arca-btn-brand"
+            >
+              <MessageCircle size={16} /> Unirme al grupo de WhatsApp
+            </a>
+            <a
+              href={enlaceWhatsApp(MARCA.whatsappSoporte, "Hola, ya me certifiqué como vendedor ATRIA y tengo una consulta.")}
+              target="_blank"
+              rel="noreferrer"
+              className="arca-btn arca-btn-secondary"
+            >
+              <LifeBuoy size={16} /> Soporte técnico
+            </a>
+          </div>
         </div>
       </>
     );

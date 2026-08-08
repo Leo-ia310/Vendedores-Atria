@@ -19,6 +19,7 @@ export type Usuario = {
   email: string;
   rol: Rol;
   debeCambiarPassword: boolean;
+  onboardingCompletado: boolean;
 };
 
 type SesionCtx = {
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function rutaPorRol(u: Usuario | null): string {
   if (!u) return "/login";
   if (u.debeCambiarPassword) return "/cambiar-password";
+  if (u.rol === "candidato" && !u.onboardingCompletado) return "/onboarding";
   if (u.rol === "admin") return "/admin";
   if (u.rol === "vendedor") return "/panel";
   return "/academia";
