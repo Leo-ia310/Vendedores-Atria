@@ -4,7 +4,7 @@ import { use } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SimuladorRunner } from "@/components/academia/SimuladorRunner";
-import { getEscenario } from "@/lib/content/simulaciones";
+import { getSalesSimulatorScenario } from "@/lib/content/sales-scenarios";
 
 export default function EscenarioPage({
   params,
@@ -12,7 +12,7 @@ export default function EscenarioPage({
   params: Promise<{ escenario: string }>;
 }) {
   const { escenario } = use(params);
-  const e = getEscenario(escenario);
+  const e = getSalesSimulatorScenario(escenario);
 
   if (!e) {
     return (

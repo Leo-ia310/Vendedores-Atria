@@ -21,18 +21,21 @@ export type BackendContext = {
   userAgent: string;
 };
 
-type UserRow = AnyRow & {
+export type AuthenticatedBackendUser = {
   UserId: string;
   CandidateId: string;
   Email: string;
-  PasswordHash: string;
-  Salt: string;
   Rol: string;
   Estado: string;
   DebeCambiarPassword: string;
+  __sessionId?: string;
+};
+
+type UserRow = AnyRow & AuthenticatedBackendUser & {
+  PasswordHash: string;
+  Salt: string;
   IntentosFallidos?: number;
   BloqueadoHasta?: string;
-  __sessionId?: string;
 };
 
 const ADMIN_TABLES = [
@@ -344,7 +347,7 @@ async function extraUsuario(user: UserRow) {
     : {};
 }
 
-async function verificarSesion(rawToken: string | null): Promise<UserRow | null> {
+export async function verificarSesion(rawToken: string | null): Promise<UserRow | null> {
   if (!rawToken) return null;
   const session = await rowBy<AnyRow>("Sesiones", "TokenHash", hashToken(rawToken));
   if (!session || session.Estado !== "activa") return null;

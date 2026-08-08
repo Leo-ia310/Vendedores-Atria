@@ -105,12 +105,53 @@ create table if not exists public."IntentosExamen" (
 create table if not exists public."Simulaciones" (
   "SimulationAttemptId" text primary key,
   "CandidateId" text,
+  "UserId" text,
   "Escenario" text,
+  "ScenarioId" text,
+  "Difficulty" text,
+  "Status" text default 'finished',
+  "StartedAt" text,
+  "FinishedAt" text,
+  "Score" double precision default 0,
+  "Messages" jsonb default '[]'::jsonb,
+  "Evaluation" jsonb default '{}'::jsonb,
   "Respuestas" text,
   "Puntaje" double precision default 0,
   "Retroalimentacion" text,
-  "Fecha" text
+  "Fecha" text,
+  "CreatedAt" text,
+  "UpdatedAt" text
 );
+
+alter table public."Simulaciones" add column if not exists "UserId" text;
+alter table public."Simulaciones" add column if not exists "ScenarioId" text;
+alter table public."Simulaciones" add column if not exists "Difficulty" text;
+alter table public."Simulaciones" add column if not exists "Status" text default 'finished';
+alter table public."Simulaciones" add column if not exists "StartedAt" text;
+alter table public."Simulaciones" add column if not exists "FinishedAt" text;
+alter table public."Simulaciones" add column if not exists "Score" double precision default 0;
+alter table public."Simulaciones" add column if not exists "Messages" jsonb default '[]'::jsonb;
+alter table public."Simulaciones" add column if not exists "Evaluation" jsonb default '{}'::jsonb;
+alter table public."Simulaciones" add column if not exists "CreatedAt" text;
+alter table public."Simulaciones" add column if not exists "UpdatedAt" text;
+
+update public."Simulaciones"
+set
+  "ScenarioId" = coalesce("ScenarioId", "Escenario"),
+  "Score" = coalesce("Score", "Puntaje", 0),
+  "Status" = coalesce("Status", 'finished'),
+  "StartedAt" = coalesce("StartedAt", "Fecha"),
+  "FinishedAt" = coalesce("FinishedAt", "Fecha"),
+  "CreatedAt" = coalesce("CreatedAt", "Fecha"),
+  "UpdatedAt" = coalesce("UpdatedAt", "Fecha")
+where
+  "ScenarioId" is null
+  or "Score" is null
+  or "Status" is null
+  or "StartedAt" is null
+  or "FinishedAt" is null
+  or "CreatedAt" is null
+  or "UpdatedAt" is null;
 
 create table if not exists public."TerminosAceptados" (
   "AcceptanceId" text primary key,
@@ -274,6 +315,11 @@ create index if not exists "idx_Vendedores_CodigoVendedor" on public."Vendedores
 create unique index if not exists "idx_Ventas_ReferenciaExterna" on public."Ventas" ("ReferenciaExterna") where "ReferenciaExterna" is not null and "ReferenciaExterna" <> '';
 create index if not exists "idx_Ventas_SellerId_Estado" on public."Ventas" ("SellerId", "Estado");
 create index if not exists "idx_IntentosExamen_CandidateId" on public."IntentosExamen" ("CandidateId");
+create index if not exists "idx_Simulaciones_CandidateId" on public."Simulaciones" ("CandidateId");
+create index if not exists "idx_Simulaciones_UserId" on public."Simulaciones" ("UserId");
+create index if not exists "idx_Simulaciones_ScenarioId" on public."Simulaciones" ("ScenarioId");
+create index if not exists "idx_Simulaciones_Difficulty" on public."Simulaciones" ("Difficulty");
+create index if not exists "idx_Simulaciones_Status" on public."Simulaciones" ("Status");
 create index if not exists "idx_Preguntas_ModuleId" on public."Preguntas" ("ModuleId");
 create index if not exists "idx_Vendedores_CandidateId" on public."Vendedores" ("CandidateId");
 create index if not exists "idx_Prospectos_SellerId" on public."Prospectos" ("SellerId");

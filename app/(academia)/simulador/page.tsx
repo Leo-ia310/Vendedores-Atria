@@ -4,18 +4,21 @@ import Link from "next/link";
 import { MessageSquare, ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Badge } from "@/components/ui/Badge";
-import { ESCENARIOS } from "@/lib/content/simulaciones";
+import {
+  SALES_DIFFICULTY_LABELS,
+  SALES_SIMULATOR_SCENARIOS,
+} from "@/lib/content/sales-scenarios";
 
 export default function SimuladorIndex() {
   return (
     <>
       <PageHeader
         titulo="Simulador comercial"
-        descripcion="Practica conversaciones reales de venta. Cada decisión suma puntos por saludo, preguntas, escucha, manejo de objeciones, cierre y ética. Necesitas al menos 3 para certificarte."
+        descripcion="Practica conversaciones reales de venta con clientes simulados. Escribe libremente, maneja objeciones y finaliza para recibir evaluacion. Necesitas al menos 3 para certificarte."
         breadcrumb={[{ label: "Academia", href: "/academia" }, { label: "Simulador" }]}
       />
       <div className="grid gap-4 sm:grid-cols-2">
-        {ESCENARIOS.map((e) => (
+        {SALES_SIMULATOR_SCENARIOS.map((e) => (
           <Link
             key={e.id}
             href={`/simulador/${e.id}`}
@@ -25,8 +28,8 @@ export default function SimuladorIndex() {
               <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[color:var(--color-surface-2)] text-[color:var(--color-secondary)]">
                 <MessageSquare size={18} />
               </span>
-              <Badge tono={e.dificultad === "Difícil" ? "error" : e.dificultad === "Media" ? "warning" : "success"}>
-                {e.dificultad}
+              <Badge tono={e.difficultyLevel === "ADVANCED" ? "error" : e.difficultyLevel === "INTERMEDIATE" ? "warning" : "success"}>
+                {SALES_DIFFICULTY_LABELS[e.difficultyLevel]}
               </Badge>
             </div>
             <h3 className="mt-4 text-[16px] font-semibold text-[color:var(--color-text-primary)]">{e.titulo}</h3>

@@ -12,7 +12,7 @@ Las tablas de la app están en `public` y se crean con `scripts/supabase-schema.
 | **Progreso** | Estado y porcentaje por módulo y candidato. |
 | **Preguntas** | Banco de preguntas por módulo y examen final. |
 | **IntentosExamen** | Cada intento con puntaje, aprobado, respuestas y duración. |
-| **Simulaciones** | Intentos del simulador con puntaje y retroalimentación. |
+| **Simulaciones** | Intentos del simulador con mensajes, puntaje, evaluacion JSON y retroalimentacion legacy. |
 | **TerminosAceptados** | Documento, versión, fecha, IP y user-agent de cada aceptación. |
 | **Certificados** | Certificados emitidos con código y puntaje final. |
 | **Vendedores** | Vendedores certificados, código, referido, nivel y estado. |
