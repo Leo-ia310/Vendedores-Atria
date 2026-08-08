@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users2, ShoppingBag, Wallet, TrendingUp, BadgeCheck, Copy, ArrowRight, ExternalLink } from "lucide-react";
+import { Users2, ShoppingBag, Wallet, TrendingUp, BadgeCheck, Copy, ArrowRight, ExternalLink, Bot } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Card } from "@/components/ui/Card";
@@ -117,6 +117,7 @@ export default function PanelResumen() {
         <AccesoRapido href="/panel/crm" titulo="Registrar prospecto" texto="Agrega y da seguimiento a tus oportunidades." icon={Users2} />
         <AccesoRapido href="/panel/ventas" titulo="Ver ventas pagadas" texto="Revisa clientes atribuidos por tu link." icon={ShoppingBag} />
         <AccesoRapido href="/panel/comisiones" titulo="Ver comisiones" texto="Revisa tus comisiones y su estado." icon={Wallet} />
+        <AccesoRapido href="/panel/asistente" titulo="Asistente interno" texto="Consulta producto, precios, objeciones y politicas con fuentes." icon={Bot} />
       </div>
     </>
   );

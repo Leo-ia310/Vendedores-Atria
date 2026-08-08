@@ -5,6 +5,7 @@ import type {
   SalesEvaluation,
   SalesEvaluationCategories,
 } from "@/lib/ai/sales-types";
+import type { PromptSecurityIssue } from "@/lib/ai/security-guard";
 import type { SalesSimulatorScenario } from "@/lib/content/sales-scenarios";
 
 export function fallbackClientReply(
@@ -37,6 +38,20 @@ export function fallbackClientReply(
 
   const objection = profile.objections[0] || "necesito pensarlo";
   return `Entiendo, pero ${objection}. Antes de avanzar necesito ver por que esto seria distinto para mi negocio.`;
+}
+
+export function guardedClientReply(
+  scenario: SalesSimulatorScenario,
+  issue?: PromptSecurityIssue,
+): string {
+  const profile = scenario.aiProfile;
+  if (issue?.type === "secret_request" || issue?.type === "system_prompt_request") {
+    return "No entiendo que tiene que ver eso con mi negocio. Si quiere seguir, expliqueme como esto me ayuda con ventas, inventario o caja.";
+  }
+  if (issue?.type === "role_escape" || issue?.type === "instruction_override" || issue?.type === "off_topic") {
+    return `Eso no me dice mucho sobre mi ${profile.businessType.toLowerCase()}. Necesito saber si esto resuelve mis problemas con ${profile.problems[0].toLowerCase()}.`;
+  }
+  return `Me perdi un poco. Si seguimos, enfoquemonos en mi negocio y en si ${profile.currentSystem.toLowerCase()} realmente puede mejorar.`;
 }
 
 export function fallbackEvaluation(

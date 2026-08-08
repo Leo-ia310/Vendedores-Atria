@@ -2,6 +2,7 @@ import type {
   AssistantChatHistoryMessage,
   RetrievedKnowledgeChunk,
 } from "@/lib/assistant/types";
+import { sanitizeDialogForModel } from "@/lib/ai/security-guard";
 import { MARCA } from "@/lib/config";
 
 export function buildAssistantSystemPrompt(): string {
@@ -43,7 +44,10 @@ export function buildAssistantUserPrompt({
     : "No se encontraron fuentes oficiales relevantes.";
 
   const recentHistory = history.length > 0
-    ? history.map((message) => `${message.role === "user" ? "Vendedor" : "Asistente"}: ${message.content}`).join("\n")
+    ? history.map((message) => {
+        const label = message.role === "user" ? "Vendedor" : "Asistente";
+        return `${label}: ${sanitizeDialogForModel(message.content)}`;
+      }).join("\n")
     : "Sin historial previo.";
 
   return [
@@ -54,7 +58,7 @@ export function buildAssistantUserPrompt({
     context,
     "",
     "PREGUNTA DEL VENDEDOR:",
-    question,
+    sanitizeDialogForModel(question),
     "",
     "INSTRUCCION DE RESPUESTA:",
     "Responde en espanol de forma directa, sin repetir la pregunta ni copiar encabezados del prompt. Si das un ejemplo para el vendedor, marca que es un ejemplo sugerido. Si falta informacion oficial, dilo sin improvisar.",

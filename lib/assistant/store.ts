@@ -40,7 +40,7 @@ export type AssistantLogInput = {
   model: string;
   embeddingModel: string;
   durationMs: number;
-  status: "success" | "no_answer" | "error";
+  status: "success" | "no_answer" | "error" | "blocked";
   errorCode?: string;
 };
 

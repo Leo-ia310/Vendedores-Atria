@@ -2,6 +2,11 @@ import "server-only";
 
 import { cloudflareWorkersAIProvider } from "@/lib/ai/cloudflare";
 import { buildAssistantSystemPrompt, buildAssistantUserPrompt } from "@/lib/ai/prompts/assistant";
+import {
+  assistantGuardResponse,
+  detectPromptSecurityIssue,
+  isUnsafeAssistantOutput,
+} from "@/lib/ai/security-guard";
 import { ASSISTANT_LIMITS, ASSISTANT_MODELS } from "@/lib/assistant/config";
 import type {
   AssistantChatHistoryMessage,
@@ -64,6 +69,36 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
     role: "user",
     content: question,
   });
+
+  const securityIssue = detectPromptSecurityIssue(question, { blockOffTopic: true });
+  if (securityIssue) {
+    const content = assistantGuardResponse(securityIssue);
+    const saved = await saveAssistantMessage({
+      conversationId: conversation.id,
+      userId: input.userId,
+      role: "assistant",
+      content,
+      sources: [],
+      confidence: "low",
+    });
+    await logAssistantQuestion({
+      userId: input.userId,
+      question,
+      chunksFound: 0,
+      confidence: "low",
+      model: ASSISTANT_MODELS.chat,
+      embeddingModel: ASSISTANT_MODELS.embeddings,
+      durationMs: Date.now() - startedAt,
+      status: "blocked",
+      errorCode: securityIssue.type,
+    });
+    return {
+      conversationId: conversation.id,
+      message: { id: saved.id, content },
+      sources: [],
+      confidence: "low",
+    };
+  }
 
   try {
     const embeddingResult = await cloudflareWorkersAIProvider.generateEmbedding({ texts: [question] });
@@ -153,7 +188,9 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       topP: 0.8,
     });
 
-    const answer = sanitizeAnswer(generation.text);
+    const answer = isUnsafeAssistantOutput(generation.text)
+      ? "No puedo responder de forma segura a esa solicitud. Puedo ayudarte con informacion oficial de Arca, ventas, objeciones, politicas o comisiones."
+      : sanitizeAnswer(generation.text);
     const saved = await saveAssistantMessage({
       conversationId: conversation.id,
       userId: input.userId,

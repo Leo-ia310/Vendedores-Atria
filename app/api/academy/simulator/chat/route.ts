@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AIProviderError, cloudflareWorkersAIProvider } from "@/lib/ai/cloudflare";
-import { fallbackClientReply } from "@/lib/ai/sales-fallback";
+import { fallbackClientReply, guardedClientReply } from "@/lib/ai/sales-fallback";
 import { SALES_AI_LIMITS } from "@/lib/ai/sales-limits";
 import {
   RequestValidationError,
@@ -9,6 +9,10 @@ import {
   toProviderHistory,
 } from "@/lib/ai/sales-requests";
 import { buildSalesSimulatorSystemPrompt } from "@/lib/ai/prompts/sales-simulator";
+import {
+  detectPromptSecurityIssue,
+  isUnsafeSalesSimulatorOutput,
+} from "@/lib/ai/security-guard";
 import { checkRateLimit } from "@/lib/ai/rate-limit";
 import { getSalesSimulatorScenario } from "@/lib/content/sales-scenarios";
 import { verificarSesion } from "@/lib/backend/router";
@@ -58,6 +62,19 @@ export async function POST(request: NextRequest) {
   }
 
   const limitedHistory = recentMessages(payload.messages);
+  const lastSellerMessage = [...payload.messages].reverse().find((message) => message.role === "seller");
+  const securityIssue = lastSellerMessage
+    ? detectPromptSecurityIssue(lastSellerMessage.content, { blockOffTopic: true })
+    : null;
+  if (securityIssue) {
+    console.warn("[sales-simulator-guard]", {
+      userId: user.UserId,
+      scenarioId: scenario.id,
+      type: securityIssue.type,
+    });
+    return NextResponse.json({ reply: guardedClientReply(scenario, securityIssue), guarded: true });
+  }
+
   try {
     const result = await cloudflareWorkersAIProvider.generateText({
       messages: [
@@ -68,6 +85,14 @@ export async function POST(request: NextRequest) {
       temperature: 0.7,
       topP: 0.9,
     });
+
+    if (isUnsafeSalesSimulatorOutput(result.text)) {
+      console.warn("[sales-simulator-output-guard]", {
+        userId: user.UserId,
+        scenarioId: scenario.id,
+      });
+      return NextResponse.json({ reply: guardedClientReply(scenario), guarded: true });
+    }
 
     return NextResponse.json({ reply: result.text });
   } catch (error) {
