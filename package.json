@@ -10,6 +10,8 @@
     "db:setup": "node scripts/setup-supabase.mjs",
     "db:reset": "node scripts/reset-supabase.mjs",
     "db:seed": "node scripts/seed-default-questions.mjs",
+    "db:migrate:assistant": "node scripts/apply-migration.mjs scripts/migrations/20260808_internal_assistant_rag.sql",
+    "db:seed:assistant": "node scripts/seed-assistant-knowledge.mjs",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },

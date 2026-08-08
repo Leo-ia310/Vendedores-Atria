@@ -59,3 +59,25 @@ El porcentaje viene de `Configuracion` según `TipoVenta`:
 
 - `primera`: `comision_primera_venta`
 - `renovacion`: `comision_renovacion`
+
+## Asistente interno IA
+
+La migracion `scripts/migrations/20260808_internal_assistant_rag.sql` habilita `pgvector`, crea las tablas RAG y la funcion `public.match_knowledge_chunks`.
+
+Tablas agregadas:
+
+- `knowledge_documents`: documentos oficiales editables.
+- `knowledge_chunks`: chunks con `embedding vector(1024)` y metadata.
+- `assistant_conversations`: conversaciones por usuario.
+- `assistant_messages`: mensajes con fuentes y confianza.
+- `assistant_question_logs`: metricas de uso, chunks, modelos, duracion y estado.
+- `unanswered_questions`: preguntas sin informacion oficial suficiente.
+- `assistant_conflicts`: posibles contradicciones detectadas.
+
+Seed inicial:
+
+```bash
+npm run db:seed:assistant
+```
+
+Este seed crea documentos oficiales editables y genera embeddings con Workers AI. No hardcodea precios o politicas dentro del prompt.

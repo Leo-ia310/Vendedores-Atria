@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   GraduationCap, LayoutDashboard, Users2, ShoppingBag, Wallet,
-  FolderDown, UserCircle, LogOut, Menu, ShieldCheck, Settings, MessageCircle, Award,
+  FolderDown, UserCircle, LogOut, Menu, ShieldCheck, Settings, MessageCircle, Award, Bot,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
@@ -20,6 +20,7 @@ const NAV: Record<Rol, NavItem[]> = {
   candidato: [
     { href: "/academia", label: "Academia", icon: GraduationCap },
     { href: "/simulador", label: "Simulador", icon: MessageCircle },
+    { href: "/asistente", label: "Asistente", icon: Bot },
     { href: "/certificacion", label: "Certificación", icon: Award },
     { href: "/perfil", label: "Mi perfil", icon: UserCircle },
   ],
@@ -29,6 +30,7 @@ const NAV: Record<Rol, NavItem[]> = {
     { href: "/panel/ventas", label: "Ventas", icon: ShoppingBag },
     { href: "/panel/comisiones", label: "Comisiones", icon: Wallet },
     { href: "/panel/recursos", label: "Recursos", icon: FolderDown },
+    { href: "/panel/asistente", label: "Asistente", icon: Bot },
     { href: "/perfil", label: "Mi perfil", icon: UserCircle },
   ],
   admin: [

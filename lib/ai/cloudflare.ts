@@ -1,8 +1,11 @@
 import "server-only";
 
 import {
+  DEFAULT_WORKERS_AI_EMBEDDING_MODEL,
   DEFAULT_WORKERS_AI_MODEL,
   type AIProvider,
+  type GenerateEmbeddingOptions,
+  type GenerateEmbeddingResult,
   type GenerateTextOptions,
   type GenerateTextResult,
 } from "@/lib/ai/provider";
@@ -64,6 +67,49 @@ export const cloudflareWorkersAIProvider: AIProvider = {
       usage: extractUsage(payload),
     };
   },
+
+  async generateEmbedding(options: GenerateEmbeddingOptions): Promise<GenerateEmbeddingResult> {
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+    const model = options.model || process.env.CLOUDFLARE_WORKERS_AI_EMBEDDING_MODEL || DEFAULT_WORKERS_AI_EMBEDDING_MODEL;
+    const texts = options.texts.map((text) => text.trim()).filter(Boolean);
+
+    if (!accountId || !apiToken) {
+      throw new AIProviderError("Cloudflare Workers AI no esta configurado.", "CONFIG");
+    }
+    if (texts.length === 0) {
+      throw new AIProviderError("No hay texto para generar embeddings.", "BAD_RESPONSE");
+    }
+
+    const response = await fetch(
+      `${CLOUDFLARE_AI_URL}/${encodeURIComponent(accountId)}/ai/run/${model}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: texts }),
+        cache: "no-store",
+      },
+    );
+
+    const payload = await response.json().catch(() => null) as unknown;
+    if (!response.ok) {
+      throw new AIProviderError(`Cloudflare Workers AI embeddings respondio con estado ${response.status}.`, "HTTP");
+    }
+
+    const embeddings = extractEmbeddings(payload);
+    if (embeddings.length !== texts.length || embeddings.some((embedding) => embedding.length === 0)) {
+      throw new AIProviderError("Cloudflare Workers AI devolvio embeddings invalidos.", "BAD_RESPONSE");
+    }
+
+    return {
+      embeddings,
+      model,
+      usage: extractUsage(payload),
+    };
+  },
 };
 
 function extractText(payload: unknown): string {
@@ -96,6 +142,26 @@ function extractUsage(payload: unknown): Record<string, unknown> | undefined {
   if (isRecord(result) && isRecord(result.usage)) return result.usage;
   if (isRecord(payload.usage)) return payload.usage;
   return undefined;
+}
+
+function extractEmbeddings(payload: unknown): number[][] {
+  const candidates: unknown[] = [];
+  if (isRecord(payload)) {
+    candidates.push(payload.data);
+    if (isRecord(payload.result)) {
+      candidates.push(payload.result.data);
+      if (isRecord(payload.result.response)) candidates.push(payload.result.response.data);
+    }
+  }
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.every(isNumberArray)) return candidate;
+  }
+  return [];
+}
+
+function isNumberArray(value: unknown): value is number[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "number" && Number.isFinite(item));
 }
 
 function stripKnownMetadata(value: Record<string, unknown>): Record<string, unknown> {

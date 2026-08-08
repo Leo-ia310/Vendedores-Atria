@@ -24,8 +24,21 @@ export type GenerateTextResult = {
   usage?: Record<string, unknown>;
 };
 
+export type GenerateEmbeddingOptions = {
+  texts: string[];
+  model?: string;
+};
+
+export type GenerateEmbeddingResult = {
+  embeddings: number[][];
+  model: string;
+  usage?: Record<string, unknown>;
+};
+
 export type AIProvider = {
   generateText(options: GenerateTextOptions): Promise<GenerateTextResult>;
+  generateEmbedding(options: GenerateEmbeddingOptions): Promise<GenerateEmbeddingResult>;
 };
 
 export const DEFAULT_WORKERS_AI_MODEL = "@cf/meta/llama-3.2-3b-instruct";
+export const DEFAULT_WORKERS_AI_EMBEDDING_MODEL = "@cf/baai/bge-m3";
