@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -15,6 +15,7 @@ import { useAuth, type Rol } from "@/lib/auth/session";
 import { cn, iniciales } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; icon: LucideIcon };
+const NOTIFICACIONES_VISTAS_MAX = 120;
 
 const NAV: Record<Rol, NavItem[]> = {
   candidato: [
@@ -57,6 +58,38 @@ export function AppShell({
   const [movilAbierto, setMovilAbierto] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
+  const storageKeyNotificaciones = usuario
+    ? `atria_notificaciones_vistas:${usuario.userId}`
+    : "";
+
+  const leerNotificacionesVistas = useCallback(() => {
+    if (!storageKeyNotificaciones || typeof window === "undefined") return new Set<string>();
+    try {
+      const raw = window.localStorage.getItem(storageKeyNotificaciones);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) return new Set<string>();
+      return new Set(parsed.filter((id): id is string => typeof id === "string" && id.length > 0));
+    } catch {
+      return new Set<string>();
+    }
+  }, [storageKeyNotificaciones]);
+
+  const guardarNotificacionesVistas = useCallback((ids: Set<string>) => {
+    if (!storageKeyNotificaciones || typeof window === "undefined") return;
+    window.localStorage.setItem(
+      storageKeyNotificaciones,
+      JSON.stringify(Array.from(ids).slice(-NOTIFICACIONES_VISTAS_MAX)),
+    );
+  }, [storageKeyNotificaciones]);
+
+  const marcarNotificacionAbierta = useCallback((notificacion: Notificacion) => {
+    if (notificacion.requiereAccion) return;
+    const vistas = leerNotificacionesVistas();
+    vistas.add(notificacion.id);
+    guardarNotificacionesVistas(vistas);
+    setNotificaciones((actuales) => actuales.filter((item) => item.id !== notificacion.id));
+  }, [guardarNotificacionesVistas, leerNotificacionesVistas]);
+
   // Guard: exige sesión y (si se especifica) rol correcto.
   useEffect(() => {
     if (cargando) return;
@@ -87,12 +120,15 @@ export function AppShell({
     }
     let activo = true;
     api<Notificacion[]>("notificacionesVendedor").then((r) => {
-      if (activo && r.ok) setNotificaciones(r.data);
+      if (activo && r.ok) {
+        const vistas = leerNotificacionesVistas();
+        setNotificaciones(r.data.filter((n) => n.requiereAccion || !vistas.has(n.id)));
+      }
     });
     return () => {
       activo = false;
     };
-  }, [usuario]);
+  }, [leerNotificacionesVistas, usuario]);
 
   if (cargando || !usuario) {
     return (
@@ -136,7 +172,7 @@ export function AppShell({
           <div className="min-w-0 flex-1" />
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             {(rolEfectivo === "vendedor" || rolEfectivo === "admin") && (
-              <NotificacionesBell notificaciones={notificaciones} />
+              <NotificacionesBell notificaciones={notificaciones} onAbrir={marcarNotificacionAbierta} />
             )}
             <span className="hidden max-w-[180px] truncate text-[13px] text-[color:var(--color-text-muted)] min-[420px]:inline">
               {usuario.email}

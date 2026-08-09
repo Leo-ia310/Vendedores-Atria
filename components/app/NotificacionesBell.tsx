@@ -11,6 +11,7 @@ export type Notificacion = {
   detalle?: string;
   href: string;
   tono: "error" | "warning" | "info" | "success";
+  requiereAccion?: boolean;
 };
 
 const TONO_COLOR: Record<Notificacion["tono"], string> = {
@@ -22,8 +23,10 @@ const TONO_COLOR: Record<Notificacion["tono"], string> = {
 
 export function NotificacionesBell({
   notificaciones,
+  onAbrir,
 }: {
   notificaciones: Notificacion[];
+  onAbrir?: (notificacion: Notificacion) => void;
 }) {
   const [abierto, setAbierto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -74,7 +77,10 @@ export function NotificacionesBell({
                 <li key={n.id}>
                   <Link
                     href={n.href}
-                    onClick={() => setAbierto(false)}
+                    onClick={() => {
+                      onAbrir?.(n);
+                      setAbierto(false);
+                    }}
                     className="flex gap-3 px-4 py-3 transition hover:bg-[color:var(--color-surface-2)]"
                   >
                     <span

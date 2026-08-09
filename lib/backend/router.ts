@@ -1050,39 +1050,48 @@ async function notificacionesVendedor(user: UserRow) {
   ]);
   const today = new Date().toISOString().slice(0, 10);
   const recentThreshold = Date.now() - 1000 * 60 * 60 * 24 * 7;
-  const followUps = prospects.filter((p) => {
+  const followUpsPendientes = prospects.filter((p) => {
     const stage = String(p.Etapa || "");
     return Boolean(p.FechaSeguimiento) &&
       String(p.FechaSeguimiento).slice(0, 10) <= today &&
       !["ganado", "perdido"].includes(stage);
-  }).length;
-  const paidSales = sales.filter((s) => {
+  });
+  const ventasPagadas = sales.filter((s) => {
     const timestamp = new Date(s.FechaVenta || s.FechaValidacion || 0).getTime();
     return String(s.Estado) === "aprobada" && Number.isFinite(timestamp) && timestamp >= recentThreshold;
-  }).length;
-  const pendingCommissions = commissions.filter((c) => ["pendiente", "aprobada"].includes(String(c.Estado))).length;
-  const notifications: Array<{ id: string; titulo: string; detalle?: string; href: string; tono: "error" | "warning" | "info" | "success" }> = [];
-  if (followUps > 0) {
+  });
+  const comisionesPendientes = commissions.filter((c) => ["pendiente", "aprobada"].includes(String(c.Estado)));
+  const notifications: Array<{ id: string; titulo: string; detalle?: string; href: string; tono: "error" | "warning" | "info" | "success"; requiereAccion?: boolean }> = [];
+  if (followUpsPendientes.length > 0) {
+    const followUps = followUpsPendientes.length;
+    const ultimaFecha = maxTexto(followUpsPendientes.map((p) => p.FechaSeguimiento));
+    const ultimoProspecto = maxTexto(followUpsPendientes.map((p) => p.ProspectId));
     notifications.push({
-      id: "seguimientos-vencidos",
+      id: `seguimientos-vencidos:${followUps}:${ultimaFecha}:${ultimoProspecto}`,
       titulo: `${followUps} ${followUps === 1 ? "seguimiento pendiente" : "seguimientos pendientes"}`,
       detalle: "Revisa tu CRM y actualiza la próxima acción",
       href: "/panel/crm",
       tono: "warning",
     });
   }
-  if (paidSales > 0) {
+  if (ventasPagadas.length > 0) {
+    const paidSales = ventasPagadas.length;
+    const ultimaFecha = maxTexto(ventasPagadas.map((s) => s.FechaVenta || s.FechaValidacion));
+    const ultimaVenta = maxTexto(ventasPagadas.map((s) => s.SaleId));
     notifications.push({
-      id: "ventas-pagadas",
+      id: `ventas-pagadas:${paidSales}:${ultimaFecha}:${ultimaVenta}`,
       titulo: `${paidSales} ${paidSales === 1 ? "venta pagada atribuida" : "ventas pagadas atribuidas"}`,
       detalle: "Consulta el historial generado por tu link",
       href: "/panel/ventas",
       tono: "success",
     });
   }
-  if (pendingCommissions > 0) {
+  if (comisionesPendientes.length > 0) {
+    const pendingCommissions = comisionesPendientes.length;
+    const ultimaFecha = maxTexto(comisionesPendientes.map((c) => c.FechaCreacion || c.FechaProgramada));
+    const ultimaComision = maxTexto(comisionesPendientes.map((c) => c.CommissionId));
     notifications.push({
-      id: "comisiones-pendientes",
+      id: `comisiones-pendientes:${pendingCommissions}:${ultimaFecha}:${ultimaComision}`,
       titulo: `${pendingCommissions} ${pendingCommissions === 1 ? "comisión pendiente" : "comisiones pendientes"}`,
       detalle: "Dales seguimiento hasta que se marquen como pagadas",
       href: "/panel/comisiones",
@@ -1090,6 +1099,14 @@ async function notificacionesVendedor(user: UserRow) {
     });
   }
   return notifications;
+}
+
+function maxTexto(values: unknown[]) {
+  return values
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .sort()
+    .at(-1) || "sin-fecha";
 }
 
 async function listarProspectos(user: UserRow) {
