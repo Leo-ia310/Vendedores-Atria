@@ -466,7 +466,7 @@ insert into public."Configuracion" ("Clave", "Valor", "Descripcion", "FechaActua
   ('intentos_examen_final', '0', 'El examen final no tiene límite de intentos', now()::text),
   ('version_terminos', '2026.08', 'Versión vigente de términos y condiciones', now()::text),
   ('moneda', 'USD', 'Moneda base de comisiones', now()::text),
-  ('whatsapp_soporte', '50500000000', 'WhatsApp de soporte', now()::text),
+  ('whatsapp_soporte', '50588662303', 'WhatsApp de soporte', now()::text),
   ('mantenimiento', '0', '1 = modo mantenimiento activo', now()::text)
 on conflict ("Clave") do nothing;
 

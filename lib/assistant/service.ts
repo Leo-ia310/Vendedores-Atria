@@ -9,6 +9,7 @@ import {
 } from "@/lib/ai/security-guard";
 import { ASSISTANT_LIMITS, ASSISTANT_MODELS } from "@/lib/assistant/config";
 import { MARCA } from "@/lib/config";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import type {
   AssistantChatHistoryMessage,
   AssistantChatResponse,
@@ -73,7 +74,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
 
   const securityIssue = detectPromptSecurityIssue(question, { blockOffTopic: true });
   if (securityIssue) {
-    const content = `${assistantGuardResponse(securityIssue)}\n\n${supportFallbackMessage()}`;
+    const content = `${assistantGuardResponse(securityIssue)}\n\n${await supportFallbackMessage()}`;
     const saved = await saveAssistantMessage({
       conversationId: conversation.id,
       userId: input.userId,
@@ -114,7 +115,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
     const sources = sourcesFromChunks(limitedChunks);
 
     if (limitedChunks.length === 0) {
-      const content = supportFallbackMessage();
+      const content = await supportFallbackMessage();
       const saved = await saveAssistantMessage({
         conversationId: conversation.id,
         userId: input.userId,
@@ -144,7 +145,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
 
     const conflict = detectPotentialConflict(question, limitedChunks);
     if (conflict) {
-      const content = `Encontre informacion contradictoria sobre ${conflict.subject} en las fuentes consultadas.\n\n${supportFallbackMessage()}`;
+      const content = `Encontre informacion contradictoria sobre ${conflict.subject} en las fuentes consultadas.\n\n${await supportFallbackMessage()}`;
       const saved = await saveAssistantMessage({
         conversationId: conversation.id,
         userId: input.userId,
@@ -192,7 +193,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
 
     const unsafeOutput = isUnsafeAssistantOutput(generation.text);
     const answer = unsafeOutput
-      ? supportFallbackMessage()
+      ? await supportFallbackMessage()
       : sanitizeAnswer(generation.text);
     const saved = await saveAssistantMessage({
       conversationId: conversation.id,
@@ -233,7 +234,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       confidence,
     };
   } catch (error) {
-    const content = supportFallbackMessage();
+    const content = await supportFallbackMessage();
     const saved = await saveAssistantMessage({
       conversationId: conversation.id,
       userId: input.userId,
@@ -269,8 +270,23 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
   }
 }
 
-function supportFallbackMessage() {
-  return `No tengo informacion oficial suficiente para responder eso con seguridad. Contacta soporte por WhatsApp al ${MARCA.whatsappSoporte}. Ya envie esta pregunta al panel de administracion para agregar una respuesta oficial.`;
+async function supportFallbackMessage() {
+  const whatsapp = await supportWhatsApp();
+  return `No tengo informacion oficial suficiente para responder eso con seguridad. Contacta soporte por WhatsApp al ${whatsapp}. Ya envie esta pregunta al panel de administracion para agregar una respuesta oficial.`;
+}
+
+async function supportWhatsApp() {
+  try {
+    const { data, error } = await supabaseAdmin()
+      .from("Configuracion")
+      .select("Valor")
+      .eq("Clave", "whatsapp_soporte")
+      .maybeSingle();
+    if (!error && data?.Valor) return String(data.Valor);
+  } catch (error) {
+    console.warn("[assistant-chat] No se pudo leer whatsapp_soporte.", error);
+  }
+  return MARCA.whatsappSoporte;
 }
 
 function sanitizeQuestion(question: string): string {
