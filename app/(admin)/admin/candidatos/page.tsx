@@ -46,7 +46,6 @@ export default function AdminCandidatos() {
     return filas.filter((c) => {
       const coincideEstado = estado === "todos" || String(c.Estado) === estado;
       const texto = [
-        c.CandidateId,
         c.NombreCompleto,
         c.Email,
         c.WhatsApp,
@@ -69,7 +68,7 @@ export default function AdminCandidatos() {
 
       <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
         <Input
-          placeholder="Buscar por codigo, nombre, correo, WhatsApp, pais, fuente o estado..."
+          placeholder="Buscar por nombre, correo, WhatsApp, pais, fuente o estado..."
           value={busca}
           onChange={(event) => setBusca(event.target.value)}
         />
@@ -90,7 +89,6 @@ export default function AdminCandidatos() {
           <table className="w-full min-w-[980px] text-left text-[13px]">
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-[color:var(--color-text-muted)]">
-                <th className="px-4 py-3 font-semibold">Codigo</th>
                 <th className="px-4 py-3 font-semibold">Candidato</th>
                 <th className="px-4 py-3 font-semibold">Contacto</th>
                 <th className="px-4 py-3 font-semibold">Pais</th>
@@ -102,9 +100,6 @@ export default function AdminCandidatos() {
             <tbody>
               {lista.map((c) => (
                 <tr key={c.CandidateId} className="border-b border-[color:var(--color-border)] last:border-0">
-                  <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--color-text-secondary)]">
-                    {c.CandidateId}
-                  </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-[color:var(--color-text-primary)]">{c.NombreCompleto}</p>
                     {c.FuenteConocio && (
