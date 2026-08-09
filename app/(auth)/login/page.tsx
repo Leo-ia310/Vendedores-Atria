@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useAuth, rutaPorRol } from "@/lib/auth/session";
 import { api } from "@/lib/api";
 
@@ -56,9 +57,8 @@ export default function LoginPage() {
         </div>
         <div>
           <Label htmlFor="password" required>Contraseña</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

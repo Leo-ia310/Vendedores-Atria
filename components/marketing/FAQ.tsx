@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const PREGUNTAS: Array<[string, string]> = [
   ["¿Necesito experiencia previa en ventas?", "No. La academia te lleva desde cero: aprenderás prospección, diagnóstico, demostración, manejo de objeciones y cierre paso a paso."],
   ["¿Cuánto dura la capacitación?", "Depende de tu ritmo. Los módulos suman varias horas de contenido; puedes avanzar cuando quieras y retomar donde lo dejaste."],
-  ["¿Cuánto puedo ganar?", "Ganas 15% de comisión sobre la primera venta de cada cliente y 5% sobre sus renovaciones. No hay límite de clientes; tus ingresos dependen de tu actividad."],
+  ["¿Cuánto puedo ganar?", "Ganas 20% de comisión sobre el primer pago de cada cliente y 10% sobre sus pagos recurrentes. No hay límite de clientes; tus ingresos dependen de tu actividad."],
   ["¿Cómo funcionan las comisiones?", "Se calculan automáticamente en tu panel cuando una venta es aprobada. Solo se reconocen clientes registrados correctamente y con evidencia."],
   ["¿Cuándo recibo mi cuenta de vendedor?", "Al completar todos los módulos, aprobar los exámenes y el examen final, hacer las simulaciones y aceptar los términos. El sistema crea tus credenciales automáticamente."],
   ["¿Puedo trabajar desde otro país?", "Sí. El programa está pensado para Latinoamérica. Solo necesitas internet, correo y WhatsApp."],

@@ -117,7 +117,7 @@ export default function VentasPage() {
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <KpiCard label="Ventas pagadas" value={ventas.length} icon={ShoppingBag} tono="success" />
         <KpiCard label="Monto vendido" value={formatearUSD(totalVendido)} icon={Wallet} tono="info" />
-        <KpiCard label="Primera / renovación" value={`${primerasVentas} / ${renovaciones}`} icon={BadgeCheck} />
+        <KpiCard label="Primer pago / recurrente" value={`${primerasVentas} / ${renovaciones}`} icon={BadgeCheck} />
       </div>
 
       {cargando ? (
@@ -156,7 +156,7 @@ export default function VentasPage() {
                   </td>
                   <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{v.Plan}</td>
                   <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">
-                    {v.TipoVenta === "renovacion" ? "Renovación" : "Primera"}
+                    {v.TipoVenta === "renovacion" ? "Pago recurrente" : "Primer pago"}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">{formatearUSD(Number(v.Monto || 0))}</td>
                   <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{formatearFecha(v.FechaVenta)}</td>

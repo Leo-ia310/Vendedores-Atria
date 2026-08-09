@@ -50,7 +50,7 @@ Checklist para validar la plataforma end-to-end. Marca cada caso.
 
 ## Panel administrativo
 - [ ] Solo un admin accede; otros roles son redirigidos.
-- [ ] Aprobar una venta genera su comisión (15% / 5%).
+- [ ] Aprobar una venta genera su comisión (20% / 10%).
 - [ ] Reembolsar/cancelar anula la comisión.
 - [ ] Marcar comisión como pagada actualiza estado y fecha.
 - [ ] Cambiar configuración (p. ej. puntaje mínimo) afecta el cálculo.

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select, Textarea, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { ProgressBar } from "@/components/ui/Feedback";
 import { api, setToken } from "@/lib/api";
 import { esEmailValido, esTelefonoValido, calcularEdad } from "@/lib/utils";
@@ -208,12 +209,12 @@ export default function RegistroPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="pass" required>Contraseña</Label>
-                <Input id="pass" type="password" value={d.password} onChange={(e) => set("password", e.target.value)} invalid={!!errores.password} />
+                <PasswordInput id="pass" value={d.password} onChange={(e) => set("password", e.target.value)} invalid={!!errores.password} />
                 <FieldError>{errores.password}</FieldError>
               </div>
               <div>
                 <Label htmlFor="conf" required>Confirmar contraseña</Label>
-                <Input id="conf" type="password" value={d.confirmar} onChange={(e) => set("confirmar", e.target.value)} invalid={!!errores.confirmar} />
+                <PasswordInput id="conf" value={d.confirmar} onChange={(e) => set("confirmar", e.target.value)} invalid={!!errores.confirmar} />
                 <FieldError>{errores.confirmar}</FieldError>
               </div>
             </div>

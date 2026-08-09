@@ -130,8 +130,8 @@ export const KNOWLEDGE: Intencion[] = [
     prioridad: 70,
     keywords: ["comision", "comisiones", "cuanto gano", "cuanto me pagan", "como gano", "ganancias"],
     sinonimos: ["comision", "pago"],
-    respuesta: "Ganas 15% sobre la primera venta de cada cliente y 5% sobre cada renovación. Solo se reconocen ventas aprobadas y verificadas. El cálculo lo hace el sistema automáticamente.",
-    quickReplies: ["Ver ejemplo", "¿Cuándo me pagan?", "Comisión por renovación"],
+    respuesta: "Ganas 20% sobre el primer pago de cada cliente y 10% sobre cada pago recurrente. Solo se reconocen ventas aprobadas y verificadas. El cálculo lo hace el sistema automáticamente.",
+    quickReplies: ["Ver ejemplo", "¿Cuándo me pagan?", "Comisión por pago recurrente"],
   },
   {
     id: "comision_ejemplo",
@@ -139,8 +139,8 @@ export const KNOWLEDGE: Intencion[] = [
     prioridad: 65,
     keywords: ["ejemplo de comision", "ejemplo comision", "cuanto por plan pro", "ejemplo", "cuanto de 45"],
     contexto: ["comision_general", "planes_precios"],
-    respuesta: "Para el plan Pro de $39: tu primera venta ≈ $5.85 (15%) y cada renovación ≈ $1.95 (5%). No hay límite de clientes.",
-    quickReplies: ["¿Cuándo me pagan?", "¿Qué es una renovación?"],
+    respuesta: "Para el plan Pro de $39: tu primer pago ≈ $7.80 (20%) y cada pago recurrente ≈ $3.90 (10%). No hay límite de clientes.",
+    quickReplies: ["¿Cuándo me pagan?", "¿Qué es un pago recurrente?"],
   },
   {
     id: "comision_pago",
@@ -199,7 +199,7 @@ export const KNOWLEDGE: Intencion[] = [
     categoria: "crm",
     prioridad: 60,
     keywords: ["registrar prospecto", "agregar prospecto", "nuevo prospecto", "como registro un cliente", "crm"],
-    respuesta: "En tu panel, entra a 'CRM y prospectos' y pulsa 'Nuevo prospecto'. Registra empresa, contacto y datos verificables. Mueve el prospecto por etapas y registra cada actividad. Evita duplicados.",
+    respuesta: "En tu panel, entra a 'CRM' y pulsa 'Nuevo prospecto'. Registra empresa, contacto y datos verificables. Mueve el prospecto por etapas y registra cada actividad. Evita duplicados.",
     quickReplies: ["¿Cómo doy seguimiento?", "Etapas del CRM"],
   },
   {

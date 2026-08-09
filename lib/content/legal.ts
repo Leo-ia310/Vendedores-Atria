@@ -33,13 +33,13 @@ export const DOCS_LEGALES: DocLegal[] = [
     titulo: "Política de comisiones",
     resumen: "Cómo se calculan, aprueban y pagan las comisiones del programa.",
     secciones: [
-      { h: "1. Estructura", p: ["Comisión por la primera venta o primer pago del cliente: 15%.", "Comisión por cada pago recurrente posterior (renovación): 5%.", "Los porcentajes son configurables por ATRIA y rigen los vigentes al momento de aprobarse la venta."] },
+      { h: "1. Estructura", p: ["Comisión por el primer pago del cliente: 20%.", "Comisión por cada pago recurrente posterior: 10%.", "Los porcentajes son configurables por ATRIA y rigen los vigentes al momento de aprobarse la venta."] },
       { h: "2. Requisitos para reconocer una comisión", p: ["El cliente debe estar registrado correctamente por el asesor con evidencia.", "La venta debe estar aprobada y verificada por ATRIA.", "No se reconocen comisiones sobre ventas pendientes, rechazadas, canceladas o reembolsadas."] },
       { h: "3. Atribución y duplicados", p: ["La atribución corresponde al primer asesor que registró correctamente al prospecto con evidencia. Los prospectos duplicados pasan a revisión administrativa; no se aceptan disputas sin evidencia registrada."] },
       { h: "4. Cálculo", p: ["La comisión se calcula en el backend a partir del monto de la venta y el porcentaje configurado. El sistema no confía en montos calculados por el frontend."] },
       { h: "5. Cortes, pagos y método", p: ["Las comisiones aprobadas se programan y se pagan según la fecha de corte y el método acordado. El asesor es responsable de sus obligaciones fiscales personales cuando correspondan."] },
       { h: "6. Reembolsos y fraude", p: ["Un reembolso anula o descuenta la comisión asociada. El fraude implica pérdida de comisiones y posible terminación."] },
-      { h: "7. Ejemplo", p: ["Para un plan de USD 45: primera venta ≈ USD 6.75 (15%); cada renovación ≈ USD 2.25 (5%)."] },
+      { h: "7. Ejemplo", p: ["Para un plan de USD 45: primer pago ≈ USD 9.00 (20%); cada pago recurrente ≈ USD 4.50 (10%)."] },
     ],
   },
   {

@@ -1,52 +1,84 @@
 "use client";
 
-import { useState } from "react";
-import { Users2, Check, X, Ban } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Users2 } from "lucide-react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Field";
-import { EmptyState, Skeleton, useToast } from "@/components/ui/Feedback";
+import { Input, Select } from "@/components/ui/Field";
+import { EmptyState, Skeleton } from "@/components/ui/Feedback";
 import { useAdminData } from "@/lib/hooks/useAdminData";
-import { api } from "@/lib/api";
 import { formatearFecha } from "@/lib/utils";
 
 type Candidato = {
-  CandidateId: string; NombreCompleto: string; Pais: string; Email: string; WhatsApp: string;
-  Estado: string; Progreso: number; Certificado: string; FechaRegistro: string;
+  CandidateId: string;
+  NombreCompleto: string;
+  Pais: string;
+  Ciudad?: string;
+  Email: string;
+  WhatsApp: string;
+  Estado: string;
+  Progreso: number;
+  Certificado: string;
+  FechaRegistro: string;
+  FuenteConocio?: string;
 };
 
 const TONO: Record<string, "neutral" | "info" | "warning" | "success" | "error"> = {
-  en_capacitacion: "info", aprobado: "success", certificado: "success",
-  rechazado: "error", suspendido: "warning",
+  en_capacitacion: "info",
+  aprobado: "success",
+  certificado: "success",
+  rechazado: "error",
+  suspendido: "warning",
 };
 
 export default function AdminCandidatos() {
-  const { filas, cargando, recargar } = useAdminData<Candidato>("Candidatos");
-  const { toast } = useToast();
+  const { filas, cargando } = useAdminData<Candidato>("Candidatos");
   const [busca, setBusca] = useState("");
-  const [ocupado, setOcupado] = useState("");
+  const [estado, setEstado] = useState("todos");
 
-  async function accion(candidateId: string, accion: string) {
-    setOcupado(candidateId + accion);
-    const r = await api("adminCandidato", { candidateId, accion });
-    setOcupado("");
-    if (!r.ok) return toast(r.error, "error");
-    toast("Candidato actualizado.", "success");
-    recargar();
-  }
-
-  const lista = filas.filter((c) =>
-    !busca ||
-    c.NombreCompleto?.toLowerCase().includes(busca.toLowerCase()) ||
-    c.Email?.toLowerCase().includes(busca.toLowerCase()),
+  const estados = useMemo(
+    () => Array.from(new Set(filas.map((c) => String(c.Estado || "")).filter(Boolean))).sort(),
+    [filas],
   );
+
+  const lista = useMemo(() => {
+    const q = busca.trim().toLowerCase();
+    return filas.filter((c) => {
+      const coincideEstado = estado === "todos" || String(c.Estado) === estado;
+      const texto = [
+        c.CandidateId,
+        c.NombreCompleto,
+        c.Email,
+        c.WhatsApp,
+        c.Pais,
+        c.Ciudad,
+        c.Estado,
+        c.Certificado,
+        c.FuenteConocio,
+      ].join(" ").toLowerCase();
+      return coincideEstado && (!q || texto.includes(q));
+    });
+  }, [busca, estado, filas]);
 
   return (
     <>
-      <PageHeader titulo="Candidatos" descripcion="Revisa y gestiona a los candidatos en capacitación." />
-      <div className="mb-4 max-w-sm">
-        <Input placeholder="Buscar por nombre o correo…" value={busca} onChange={(e) => setBusca(e.target.value)} />
+      <PageHeader
+        titulo="Candidatos"
+        descripcion="Consulta candidatos en capacitacion. El vendedor se activa automaticamente al certificarse."
+      />
+
+      <div className="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
+        <Input
+          placeholder="Buscar por codigo, nombre, correo, WhatsApp, pais, fuente o estado..."
+          value={busca}
+          onChange={(event) => setBusca(event.target.value)}
+        />
+        <Select value={estado} onChange={(event) => setEstado(event.target.value)}>
+          <option value="todos">Todos los estados</option>
+          {estados.map((item) => (
+            <option key={item} value={item}>{item.replace("_", " ")}</option>
+          ))}
+        </Select>
       </div>
 
       {cargando ? (
@@ -55,35 +87,42 @@ export default function AdminCandidatos() {
         <div className="arca-card"><EmptyState icon={Users2} titulo="Sin candidatos" /></div>
       ) : (
         <div className="arca-card overflow-x-auto">
-          <table className="w-full min-w-[820px] text-left text-[13px]">
+          <table className="w-full min-w-[980px] text-left text-[13px]">
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-[color:var(--color-text-muted)]">
+                <th className="px-4 py-3 font-semibold">Codigo</th>
                 <th className="px-4 py-3 font-semibold">Candidato</th>
-                <th className="px-4 py-3 font-semibold">País</th>
+                <th className="px-4 py-3 font-semibold">Contacto</th>
+                <th className="px-4 py-3 font-semibold">Pais</th>
                 <th className="px-4 py-3 font-semibold">Progreso</th>
                 <th className="px-4 py-3 font-semibold">Estado</th>
                 <th className="px-4 py-3 font-semibold">Registro</th>
-                <th className="px-4 py-3 text-right font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {lista.map((c) => (
                 <tr key={c.CandidateId} className="border-b border-[color:var(--color-border)] last:border-0">
+                  <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--color-text-secondary)]">
+                    {c.CandidateId}
+                  </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-[color:var(--color-text-primary)]">{c.NombreCompleto}</p>
-                    <p className="text-[color:var(--color-text-muted)]">{c.Email}</p>
+                    {c.FuenteConocio && (
+                      <p className="text-[12px] text-[color:var(--color-text-muted)]">Fuente: {c.FuenteConocio}</p>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{c.Pais || "—"}</td>
+                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">
+                    <p>{c.Email || "-"}</p>
+                    <p className="text-[12px] text-[color:var(--color-text-muted)]">{c.WhatsApp || ""}</p>
+                  </td>
+                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">
+                    {[c.Pais, c.Ciudad].filter(Boolean).join(" / ") || "-"}
+                  </td>
                   <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{c.Progreso || 0}%</td>
-                  <td className="px-4 py-3"><Badge tono={TONO[c.Estado] || "neutral"}>{String(c.Estado).replace("_", " ")}</Badge></td>
-                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{formatearFecha(c.FechaRegistro)}</td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1.5">
-                      <Button size="sm" variant="secondary" loading={ocupado === c.CandidateId + "aprobar"} onClick={() => accion(c.CandidateId, "aprobar")}><Check size={13} /></Button>
-                      <Button size="sm" variant="ghost" loading={ocupado === c.CandidateId + "suspender"} onClick={() => accion(c.CandidateId, "suspender")}><Ban size={13} /></Button>
-                      <Button size="sm" variant="danger" loading={ocupado === c.CandidateId + "rechazar"} onClick={() => accion(c.CandidateId, "rechazar")}><X size={13} /></Button>
-                    </div>
+                    <Badge tono={TONO[c.Estado] || "neutral"}>{String(c.Estado || "").replace("_", " ")}</Badge>
                   </td>
+                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{formatearFecha(c.FechaRegistro)}</td>
                 </tr>
               ))}
             </tbody>

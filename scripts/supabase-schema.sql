@@ -459,8 +459,8 @@ as $$
 $$;
 
 insert into public."Configuracion" ("Clave", "Valor", "Descripcion", "FechaActualizacion") values
-  ('comision_primera_venta', '0.15', 'Porcentaje de comisión sobre la primera venta', now()::text),
-  ('comision_renovacion', '0.05', 'Porcentaje de comisión sobre renovaciones', now()::text),
+  ('comision_primera_venta', '0.20', 'Porcentaje de comisión sobre el primer pago', now()::text),
+  ('comision_renovacion', '0.10', 'Porcentaje de comisión sobre pagos recurrentes', now()::text),
   ('puntaje_minimo', '85', 'Puntaje mínimo para aprobar y certificar', now()::text),
   ('intentos_por_examen', '3', 'Intentos permitidos por examen de módulo', now()::text),
   ('intentos_examen_final', '0', 'El examen final no tiene límite de intentos', now()::text),

@@ -22,8 +22,8 @@ export const MARCA = {
 
 /** Reglas de comisión (reflejo de la tabla Configuracion; el backend es la autoridad). */
 export const COMISIONES = {
-  porcentajePrimeraVenta: 0.15, // 15%
-  porcentajeRenovacion: 0.05, // 5%
+  porcentajePrimeraVenta: 0.2, // 20%
+  porcentajeRenovacion: 0.1, // 10%
   moneda: "USD",
 } as const;
 

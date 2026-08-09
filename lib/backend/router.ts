@@ -58,9 +58,14 @@ const ADMIN_TABLES = [
   "Preguntas",
   "Configuracion",
   "Progreso",
+  "unanswered_questions",
 ];
 
 const FINAL_ACADEMY_MODULE_ID = "mod15";
+
+function progressModuleIdForExam(moduleId: string) {
+  return moduleId === "final" ? FINAL_ACADEMY_MODULE_ID : moduleId;
+}
 
 export async function runBackendAction<T = unknown>(
   action: string,
@@ -213,6 +218,20 @@ function future(ms: number) {
   return new Date(Date.now() + ms).toISOString();
 }
 
+function proximaFechaPagoQuincenal(from = new Date()) {
+  const scheduled = new Date(from);
+  scheduled.setHours(9, 0, 0, 0);
+  const day = scheduled.getDate();
+  if (day <= 10) {
+    scheduled.setDate(10);
+  } else if (day <= 25) {
+    scheduled.setDate(25);
+  } else {
+    scheduled.setMonth(scheduled.getMonth() + 1, 10);
+  }
+  return scheduled.toISOString();
+}
+
 function id(prefix: string) {
   return `${prefix}_${Date.now().toString(36)}_${randomBytes(4).toString("hex")}`;
 }
@@ -318,8 +337,8 @@ async function configSet(key: string, value: string, description?: string) {
 
 async function configPublica() {
   return {
-    comisionPrimeraVenta: await configNum("comision_primera_venta", 0.15),
-    comisionRenovacion: await configNum("comision_renovacion", 0.05),
+    comisionPrimeraVenta: await configNum("comision_primera_venta", 0.2),
+    comisionRenovacion: await configNum("comision_renovacion", 0.1),
     puntajeMinimo: await configNum("puntaje_minimo", 85),
     moneda: await configGet("moneda"),
     whatsappSoporte: await configGet("whatsapp_soporte"),
@@ -608,8 +627,8 @@ async function repararProgresoDesdeIntentos(candidateId: string, progreso: AnyRo
   if (!candidateId) return false;
   const aprobados = new Set(
     intentos
-      .filter((a) => String(a.ModuleId) !== "final" && esVerdadero(a.Aprobado))
-      .map((a) => String(a.ModuleId)),
+      .filter((a) => esVerdadero(a.Aprobado))
+      .map((a) => progressModuleIdForExam(String(a.ModuleId))),
   );
   const completos = new Set(
     progreso
@@ -753,8 +772,12 @@ async function enviarExamen(user: UserRow, payload: Payload) {
     FechaFinalizacion: now(),
     Duracion: Number(payload.duracion || 0),
   });
-  if (approved && moduleId !== "final") {
-    await guardarProgreso(user, { moduleId, porcentaje: 100, estado: "completado" });
+  if (approved) {
+    await guardarProgreso(user, {
+      moduleId: progressModuleIdForExam(moduleId),
+      porcentaje: 100,
+      estado: "completado",
+    });
   }
   return {
     puntaje: score,
@@ -967,6 +990,25 @@ function normalizarCodigoReferido(value: unknown) {
     .slice(0, 80);
 }
 
+function normalizarContacto(value: unknown) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function normalizarTelefono(value: unknown) {
+  return String(value || "").replace(/[^\d+]/g, "");
+}
+
+function appendNota(actual: unknown, nueva: string) {
+  const base = String(actual || "").trim();
+  if (!base) return nueva;
+  if (base.includes(nueva)) return base;
+  return `${base}\n${nueva}`;
+}
+
 async function dashboardVendedor(user: UserRow) {
   const seller = await sellerDeUsuario(user);
   const [prospects, sales, commissions] = await Promise.all([
@@ -1141,6 +1183,94 @@ async function registrarVenta(user: UserRow, payload: Payload) {
   throw new PublicError("VENTA_AUTOMATICA", "Las ventas se registran automáticamente cuando Atria confirma el pago del cliente.");
 }
 
+async function asegurarProspectoDesdeVentaReferida(
+  seller: AnyRow,
+  payload: Payload,
+  referralCode: string,
+  amount: number,
+) {
+  const sellerId = String(seller.SellerId || "");
+  const email = String(payload.clienteEmail || "").toLowerCase().trim();
+  const whatsapp = normalizarTelefono(payload.clienteTelefono || payload.empresaTelefono || payload.whatsapp);
+  const cliente = String(payload.cliente || "").trim();
+  const empresa = String(payload.empresaCliente || payload.empresa || payload.cliente || "").trim();
+  const pais = String(payload.empresaPais || payload.pais || "").trim();
+  const sector = String(payload.empresaSector || payload.sector || payload.tipoEmpresa || "").trim();
+  const plan = String(payload.plan || "Plan activo").trim();
+  const fuente = `Entró por link de referido ${referralCode}`;
+  const nota = `Cliente activo en Plan ${plan}. Compra confirmada por link de referido.`;
+  const prospectos = await rowsWhere<AnyRow>("Prospectos", "SellerId", sellerId);
+  const empresaKey = normalizarContacto(empresa);
+  const clienteKey = normalizarContacto(cliente);
+  const existente = prospectos.find((prospecto) => {
+    const prospectEmail = String(prospecto.Email || "").toLowerCase().trim();
+    const prospectWhatsapp = normalizarTelefono(prospecto.WhatsApp);
+    const prospectEmpresa = normalizarContacto(prospecto.Empresa);
+    const prospectContacto = normalizarContacto(prospecto.Contacto);
+    return (email && prospectEmail === email)
+      || (whatsapp && prospectWhatsapp === whatsapp)
+      || (empresaKey && prospectEmpresa === empresaKey)
+      || (clienteKey && prospectContacto === clienteKey);
+  });
+
+  if (existente) {
+    await updateRows("Prospectos", "ProspectId", existente.ProspectId, {
+      Empresa: existente.Empresa || empresa,
+      Contacto: existente.Contacto || cliente,
+      Email: existente.Email || email,
+      WhatsApp: existente.WhatsApp || whatsapp,
+      Pais: existente.Pais || pais,
+      Sector: existente.Sector || sector,
+      Fuente: existente.Fuente || fuente,
+      Etapa: "ganado",
+      ValorEstimado: amount,
+      ProximaAccion: "Dar seguimiento post-compra",
+      Notas: appendNota(existente.Notas, nota),
+      FechaActualizacion: now(),
+    });
+    await insertRow("ActividadesCRM", {
+      ActivityId: id("act"),
+      ProspectId: existente.ProspectId,
+      SellerId: sellerId,
+      Tipo: "venta_atria",
+      Descripcion: nota,
+      Fecha: now(),
+      ProximaAccion: "Dar seguimiento post-compra",
+    });
+    return { prospectId: existente.ProspectId, creado: false };
+  }
+
+  const prospectId = id("pros");
+  await insertRow("Prospectos", {
+    ProspectId: prospectId,
+    SellerId: sellerId,
+    Empresa: empresa,
+    Contacto: cliente,
+    Email: email,
+    WhatsApp: whatsapp,
+    Pais: pais,
+    Sector: sector,
+    Fuente: fuente,
+    Etapa: "ganado",
+    ValorEstimado: amount,
+    ProximaAccion: "Dar seguimiento post-compra",
+    FechaSeguimiento: "",
+    Notas: nota,
+    FechaCreacion: now(),
+    FechaActualizacion: now(),
+  });
+  await insertRow("ActividadesCRM", {
+    ActivityId: id("act"),
+    ProspectId: prospectId,
+    SellerId: sellerId,
+    Tipo: "venta_atria",
+    Descripcion: nota,
+    Fecha: now(),
+    ProximaAccion: "Dar seguimiento post-compra",
+  });
+  return { prospectId, creado: true };
+}
+
 async function registrarVentaReferida(payload: Payload, ctx: BackendContext) {
   const expectedSecret = process.env.ATRIA_REFERRAL_WEBHOOK_SECRET;
   if (!expectedSecret || String(payload.secret || "") !== expectedSecret) {
@@ -1173,11 +1303,12 @@ async function registrarVentaReferida(payload: Payload, ctx: BackendContext) {
   }
 
   const tipoVenta = String(payload.tipoVenta || "primera") === "renovacion" ? "renovacion" : "primera";
+  const crm = await asegurarProspectoDesdeVentaReferida(seller, payload, referralCode, amount);
   const saleId = id("sale");
   const sale = {
     SaleId: saleId,
     SellerId: seller.SellerId,
-    ProspectId: payload.prospectId || "",
+    ProspectId: payload.prospectId || crm.prospectId,
     Cliente: String(payload.cliente || ""),
     ClienteEmail: String(payload.clienteEmail || "").toLowerCase().trim(),
     EmpresaCliente: String(payload.empresaCliente || ""),
@@ -1208,10 +1339,10 @@ async function registrarVentaReferida(payload: Payload, ctx: BackendContext) {
     "venta",
     saleId,
     null,
-    { referralCode, externalRef, amount, plan: payload.plan },
+    { referralCode, externalRef, amount, plan: payload.plan, prospectId: crm.prospectId, prospectCreated: crm.creado },
     ctx.ip,
   );
-  return { saleId, estado: "aprobada", comision: commissionInfo };
+  return { saleId, estado: "aprobada", comision: commissionInfo, prospectId: crm.prospectId, prospectoCreado: crm.creado };
 }
 
 async function listarComisiones(user: UserRow) {
@@ -1221,7 +1352,7 @@ async function listarComisiones(user: UserRow) {
 
 async function calcularComisionDeVenta(sale: AnyRow) {
   const isRenewal = String(sale.TipoVenta) === "renovacion";
-  const pct = isRenewal ? await configNum("comision_renovacion", 0.05) : await configNum("comision_primera_venta", 0.15);
+  const pct = isRenewal ? await configNum("comision_renovacion", 0.1) : await configNum("comision_primera_venta", 0.2);
   const amount = Number((Number(sale.Monto || 0) * pct).toFixed(2));
   const commissionId = id("com");
   await insertRow("Comisiones", {
@@ -1233,7 +1364,7 @@ async function calcularComisionDeVenta(sale: AnyRow) {
     Monto: amount,
     Estado: "pendiente",
     FechaCreacion: now(),
-    FechaProgramada: future(1000 * 60 * 60 * 24 * 30),
+    FechaProgramada: proximaFechaPagoQuincenal(),
     FechaPago: "",
     MetodoPago: "",
   });

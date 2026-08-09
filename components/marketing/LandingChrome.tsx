@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { Menu, X, Instagram, Facebook, Linkedin } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
-import { LazyChatWidget } from "@/components/chatbot/LazyChatWidget";
 import { MARCA } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -213,7 +212,6 @@ export function LandingShell({ children }: { children: ReactNode }) {
       <LandingNav />
       <main className="relative z-10 overflow-hidden text-white">{children}</main>
       <LandingFooter />
-      <LazyChatWidget />
     </>
   );
 }

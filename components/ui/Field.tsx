@@ -41,7 +41,7 @@ export function FieldError({ children }: { children?: ReactNode }) {
   );
 }
 
-type InputProps = InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean };
+export type InputProps = InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean };
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { className, invalid, ...rest },
   ref,

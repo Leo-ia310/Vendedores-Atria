@@ -22,7 +22,7 @@ Usa estos datos como referencia cuando cargues cuentas demo en Supabase o desde 
 - 1 vendedor certificado con código y referido.
 - 5 prospectos en distintas etapas.
 - 3 ventas (2 aprobadas -> generan comisión, 1 pendiente).
-- Comisiones calculadas automáticamente (15% / 5%).
+- Comisiones calculadas automáticamente (20% / 10%).
 - 3 logs de chatbot y 2 preguntas no resueltas.
 - 15 módulos, banco de preguntas por módulo y examen final.
 

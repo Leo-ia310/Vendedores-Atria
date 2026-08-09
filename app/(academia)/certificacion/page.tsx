@@ -199,7 +199,7 @@ export default function CertificacionPage() {
             ))}
             <label className="flex items-start gap-2.5">
               <input type="checkbox" checked={confirmaComisiones} onChange={(e) => setConfirmaComisiones(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[color:var(--color-secondary)]" />
-              <span className="text-[13px] text-[color:var(--color-text-secondary)]">Confirmo que comprendo el sistema de comisiones (15% primera venta / 5% renovación).</span>
+              <span className="text-[13px] text-[color:var(--color-text-secondary)]">Confirmo que comprendo el sistema de comisiones (20% primer pago / 10% pago recurrente).</span>
             </label>
             <label className="flex items-start gap-2.5">
               <input type="checkbox" checked={confirmaEtica} onChange={(e) => setConfirmaEtica(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[color:var(--color-secondary)]" />

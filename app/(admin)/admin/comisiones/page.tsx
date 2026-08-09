@@ -74,7 +74,7 @@ export default function AdminComisiones() {
               {lista.map((c) => (
                 <tr key={c.CommissionId} className="border-b border-[color:var(--color-border)] last:border-0">
                   <td className="px-4 py-3 font-medium">{c.SellerId}</td>
-                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{c.Tipo === "renovacion" ? "Renovación" : "Primera"} ({Math.round(Number(c.Porcentaje) * 100)}%)</td>
+                  <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{c.Tipo === "renovacion" ? "Pago recurrente" : "Primer pago"} ({Math.round(Number(c.Porcentaje) * 100)}%)</td>
                   <td className="px-4 py-3 text-right font-medium">{formatearUSD(Number(c.Monto || 0))}</td>
                   <td className="px-4 py-3"><Badge tono={TONO[c.Estado] || "neutral"}>{c.Estado}</Badge></td>
                   <td className="px-4 py-3 text-[color:var(--color-text-secondary)]">{formatearFecha(c.FechaProgramada)}</td>

@@ -30,8 +30,8 @@ Las tablas de la app están en `public` y se crean con `scripts/supabase-schema.
 
 Claves por defecto:
 
-- `comision_primera_venta=0.15`
-- `comision_renovacion=0.05`
+- `comision_primera_venta=0.20`
+- `comision_renovacion=0.10`
 - `puntaje_minimo=85`
 - `intentos_por_examen=3`
 - `intentos_examen_final=0` (sin límite)

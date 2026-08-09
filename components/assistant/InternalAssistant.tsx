@@ -306,25 +306,9 @@ function AssistantBubble({ message }: { message: UIMessage }) {
         )}
       >
         {message.content}
-        {isAssistant && (message.sources.length > 0 || message.confidence) && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-[color:var(--color-border)] pt-2">
-            {message.confidence && <ConfidenceBadge confidence={message.confidence} />}
-            {message.sources.map((source) => (
-              <Badge key={`${source.title}-${source.category}`} tono="neutral">
-                {source.title}
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
-}
-
-function ConfidenceBadge({ confidence }: { confidence: AssistantConfidence }) {
-  const tono = confidence === "high" ? "success" : confidence === "medium" ? "warning" : "error";
-  const label = confidence === "high" ? "Alta" : confidence === "medium" ? "Media" : "Baja";
-  return <Badge tono={tono}>Confianza {label}</Badge>;
 }
 
 function toUIMessage(message: AssistantMessage): UIMessage {

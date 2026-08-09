@@ -36,8 +36,8 @@ var HASH_ITERACIONES = 5000;
 
 // Valores por defecto de la hoja Configuracion (clave -> [valor, descripción])
 var CONFIG_DEFAULTS = {
-  comision_primera_venta: ['0.15', 'Porcentaje de comisión sobre la primera venta (0.15 = 15%)'],
-  comision_renovacion: ['0.05', 'Porcentaje de comisión sobre renovaciones (0.05 = 5%)'],
+  comision_primera_venta: ['0.20', 'Porcentaje de comisión sobre el primer pago (0.20 = 20%)'],
+  comision_renovacion: ['0.10', 'Porcentaje de comisión sobre pagos recurrentes (0.10 = 10%)'],
   puntaje_minimo: ['85', 'Puntaje mínimo (%) para aprobar y certificar'],
   intentos_por_examen: ['3', 'Intentos permitidos por examen de módulo'],
   intentos_examen_final: ['2', 'Intentos permitidos en el examen final'],
@@ -499,8 +499,8 @@ function configSet(clave, valor, descripcion) {
 }
 function configPublica() {
   return {
-    comision_primera_venta: configNum('comision_primera_venta', 0.15),
-    comision_renovacion: configNum('comision_renovacion', 0.05),
+    comision_primera_venta: configNum('comision_primera_venta', 0.2),
+    comision_renovacion: configNum('comision_renovacion', 0.1),
     puntaje_minimo: configNum('puntaje_minimo', 85),
     intentos_por_examen: configNum('intentos_por_examen', 3),
     intentos_examen_final: configNum('intentos_examen_final', 2),
@@ -1220,7 +1220,7 @@ function accListarComisiones(u) {
 /** Calcula (backend) la comisión de una venta aprobada. Fuente del %: hoja Configuracion. */
 function calcularComisionDeVenta(venta) {
   var esRenovacion = String(venta.TipoVenta) === 'renovacion';
-  var pct = esRenovacion ? configNum('comision_renovacion', 0.05) : configNum('comision_primera_venta', 0.15);
+  var pct = esRenovacion ? configNum('comision_renovacion', 0.1) : configNum('comision_primera_venta', 0.2);
   var monto = +(Number(venta.Monto || 0) * pct).toFixed(2);
   var commissionId = idUnico('com');
   insertarFila('Comisiones', {
@@ -1385,7 +1385,7 @@ function accAdminRegistrarRenovacion(u, payload) {
   if (!venta) return respuesta(false, null, 'NO_ENCONTRADO', 'Venta original no encontrada.');
   var monto = Number(payload.monto || venta.Monto || 0);
   var renewalId = idUnico('ren');
-  // Crea una "venta" tipo renovación aprobada para generar la comisión del 5%.
+  // Crea una "venta" tipo renovación aprobada para generar la comisión del 10%.
   var saleRenId = idUnico('sale');
   insertarFila('Ventas', {
     SaleId: saleRenId, SellerId: venta.SellerId, ProspectId: venta.ProspectId, Cliente: venta.Cliente,
@@ -1525,10 +1525,10 @@ function cargarPreguntasPrueba() {
     ['mod10', 'opcion', '¿Qué es una señal de compra?', '["Silencio","Preguntar por plazos e implementación","Colgar","Ninguna"]', 'Preguntar por plazos e implementación', 'Indica que está listo para cerrar.'],
     ['mod11', 'vf', 'Lo que no está registrado en el CRM no cuenta para comisiones.', '["Verdadero","Falso"]', 'Verdadero', 'El registro con evidencia es clave.'],
     ['mod12', 'vf', 'Se pueden ofrecer descuentos sin autorización.', '["Verdadero","Falso"]', 'Falso', 'Es una falta grave del código de conducta.'],
-    ['mod13', 'opcion', '¿Cuál es la comisión de la primera venta?', '["5%","10%","15%","20%"]', '15%', 'Primera venta 15%, renovación 5%.'],
+    ['mod13', 'opcion', '¿Cuál es la comisión del primer pago?', '["5%","10%","15%","20%"]', '20%', 'Primer pago 20%, pago recurrente 10%.'],
     ['mod14', 'vf', 'Medir la conversión ayuda a mejorar.', '["Verdadero","Falso"]', 'Verdadero', 'Los indicadores guían la mejora continua.'],
     // Examen final
-    ['final', 'opcion', '¿Comisión por renovación?', '["5%","10%","15%","0%"]', '5%', 'Las renovaciones pagan 5%.'],
+    ['final', 'opcion', '¿Comisión por pago recurrente?', '["5%","10%","15%","0%"]', '10%', 'Los pagos recurrentes pagan 10%.'],
     ['final', 'vf', 'La atribución es del primer registro válido con evidencia.', '["Verdadero","Falso"]', 'Verdadero', 'Política de prospectos.'],
     ['final', 'opcion', 'Ante "está caro", lo mejor es...', '["Bajar el precio","Recuperar el impacto del problema","Insistir","Retirarse"]', 'Recuperar el impacto del problema', 'Suele significar que no ve el valor.'],
     ['final', 'opcion', '¿Qué NO se debe hacer?', '["Registrar prospectos ajenos","Escuchar","Diagnosticar","Dar seguimiento"]', 'Registrar prospectos ajenos', 'Es una falta ética.'],

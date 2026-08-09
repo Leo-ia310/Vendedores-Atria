@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/ui/Feedback";
 
@@ -45,11 +46,11 @@ export default function RestablecerPage() {
         </div>
         <div>
           <Label htmlFor="nueva" required>Nueva contraseña</Label>
-          <Input id="nueva" type="password" value={nueva} onChange={(e) => setNueva(e.target.value)} required />
+          <PasswordInput id="nueva" value={nueva} onChange={(e) => setNueva(e.target.value)} required />
         </div>
         <div>
           <Label htmlFor="confirmar" required>Confirmar contraseña</Label>
-          <Input id="confirmar" type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+          <PasswordInput id="confirmar" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
         </div>
         {error && <FieldError>{error}</FieldError>}
         <Button type="submit" variant="brand" size="lg" loading={cargando} className="w-full">

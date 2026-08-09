@@ -264,7 +264,7 @@ export default function LandingReclutamiento() {
             <p className="text-[54px] font-bold leading-none text-white">
               {Math.round(COMISIONES.porcentajePrimeraVenta * 100)}%
             </p>
-            <p className="mt-2 text-[14px] font-medium text-white/80">Primera venta / primer pago</p>
+            <p className="mt-2 text-[14px] font-medium text-white/80">Primer pago</p>
           </div>
           <div className="rounded-[16px] border border-white/12 bg-[#1b0d31]/80 p-7 text-center">
             <p className="text-[54px] font-bold leading-none text-white">
@@ -277,8 +277,8 @@ export default function LandingReclutamiento() {
         <div className="mx-auto mt-8 max-w-4xl overflow-hidden rounded-[14px] border border-white/12 bg-[#150826]/70">
           <div className="grid grid-cols-3 border-b border-white/10 px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-white/45">
             <span>Plan ATRIA</span>
-            <span className="text-right">Tu primera venta</span>
-            <span className="text-right">Cada renovación</span>
+            <span className="text-right">Tu primer pago</span>
+            <span className="text-right">Cada pago recurrente</span>
           </div>
           {PLANES_EJEMPLO.filter((p) => p.precioMensual > 0).map((p) => {
             const c = ejemploComision(p.precioMensual);

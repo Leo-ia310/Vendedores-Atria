@@ -26,7 +26,7 @@ const NAV: Record<Rol, NavItem[]> = {
   ],
   vendedor: [
     { href: "/panel", label: "Resumen", icon: LayoutDashboard },
-    { href: "/panel/crm", label: "CRM y prospectos", icon: Users2 },
+    { href: "/panel/crm", label: "CRM", icon: Users2 },
     { href: "/panel/ventas", label: "Ventas", icon: ShoppingBag },
     { href: "/panel/comisiones", label: "Comisiones", icon: Wallet },
     { href: "/panel/recursos", label: "Recursos", icon: FolderDown },
@@ -39,7 +39,7 @@ const NAV: Record<Rol, NavItem[]> = {
     { href: "/admin/vendedores", label: "Vendedores", icon: ShieldCheck },
     { href: "/admin/ventas", label: "Ventas", icon: ShoppingBag },
     { href: "/admin/comisiones", label: "Comisiones", icon: Wallet },
-    { href: "/admin/chatbot", label: "Chatbot", icon: MessageCircle },
+    { href: "/admin/chatbot", label: "Asistente IA", icon: Bot },
     { href: "/admin/config", label: "Configuración", icon: Settings },
   ],
 };

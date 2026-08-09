@@ -1,8 +1,8 @@
 import { MODULOS } from "@/lib/content/modulos";
 
 export const CONFIG_DEFAULTS: Record<string, [string, string]> = {
-  comision_primera_venta: ["0.15", "Porcentaje de comisión sobre la primera venta"],
-  comision_renovacion: ["0.05", "Porcentaje de comisión sobre renovaciones"],
+  comision_primera_venta: ["0.20", "Porcentaje de comisión sobre el primer pago"],
+  comision_renovacion: ["0.10", "Porcentaje de comisión sobre pagos recurrentes"],
   puntaje_minimo: ["85", "Puntaje mínimo para aprobar y certificar"],
   intentos_por_examen: ["3", "Intentos permitidos por examen de módulo"],
   intentos_examen_final: ["0", "El examen final no tiene límite de intentos"],
@@ -91,8 +91,8 @@ export const DEFAULT_QUESTIONS: QuestionRow[] = [
   q("mod12", "vf", "Está prohibido hablar mal de competidores para cerrar una venta.", ["Verdadero", "Falso"], "Verdadero", "Compite por valor y profesionalismo, no por ataques."),
   q("mod12", "opcion", "¿Qué práctica protege la ética del programa?", ["Registrar evidencia real y no prometer funciones inexistentes", "Inflar montos", "Registrar prospectos ajenos", "Ocultar condiciones"], "Registrar evidencia real y no prometer funciones inexistentes", "La confianza se sostiene con registros reales y promesas correctas."),
 
-  q("mod13", "opcion", "¿Cuál es la comisión de la primera venta?", ["5%", "10%", "15%", "20%"], "15%", "Primera venta 15%, renovación 5%."),
-  q("mod13", "opcion", "¿Cuál es la comisión por renovación?", ["5%", "10%", "15%", "0%"], "5%", "Las renovaciones aprobadas pagan 5%."),
+  q("mod13", "opcion", "¿Cuál es la comisión del primer pago?", ["5%", "10%", "15%", "20%"], "20%", "Primer pago 20%, pago recurrente 10%."),
+  q("mod13", "opcion", "¿Cuál es la comisión por pago recurrente?", ["5%", "10%", "15%", "0%"], "10%", "Los pagos recurrentes aprobados pagan 10%."),
   q("mod13", "vf", "Una venta rechazada o reembolsada no debe generar comisión vigente.", ["Verdadero", "Falso"], "Verdadero", "Solo las ventas aprobadas y verificadas generan comisiones."),
   q("mod13", "vf", "Si un cliente entra con tu link de referido y compra desde otra ubicación, la comisión se acumula a tu cuenta si la venta es aprobada.", ["Verdadero", "Falso"], "Verdadero", "El link de referido atribuye la compra al asesor, sin importar desde dónde compre el cliente, siempre que la venta sea válida y aprobada."),
 
@@ -113,7 +113,7 @@ export const DEFAULT_QUESTIONS: QuestionRow[] = [
   q("final", "opcion", "Cuando un cliente decide no comprar, el asesor debe...", ["Cerrar con respeto y registrar el motivo", "Presionarlo más", "Hablar mal de su decisión", "Inventar una promoción"], "Cerrar con respeto y registrar el motivo", "Un cierre perdido bien gestionado mantiene la relación y mejora datos."),
   q("final", "opcion", "¿Qué debe registrar el asesor en el CRM?", ["Datos verificables, etapa, notas, evidencia y próxima acción", "Solo un nombre", "Nada si cree recordar", "Solo la comisión esperada"], "Datos verificables, etapa, notas, evidencia y próxima acción", "El CRM sostiene seguimiento, atribución y comisiones."),
   q("final", "vf", "Se puede prometer una función inexistente si ayuda a cerrar rápido.", ["Verdadero", "Falso"], "Falso", "La ética comercial prohíbe promesas falsas."),
-  q("final", "opcion", "¿Cuál es la comisión por renovación?", ["5%", "10%", "15%", "0%"], "5%", "Las renovaciones aprobadas pagan 5%."),
+  q("final", "opcion", "¿Cuál es la comisión por pago recurrente?", ["5%", "10%", "15%", "0%"], "10%", "Los pagos recurrentes aprobados pagan 10%."),
   q("final", "opcion", "Una demo efectiva se construye con base en...", ["Diagnóstico del cliente", "Un recorrido genérico por todos los botones", "Presión por precio", "Adivinanzas"], "Diagnóstico del cliente", "La demo debe resolver los dolores detectados."),
   q("final", "vf", "El examen final se puede repetir sin límite de intentos.", ["Verdadero", "Falso"], "Verdadero", "El objetivo es demostrar dominio, no bloquear al alumno por intentos."),
 ];

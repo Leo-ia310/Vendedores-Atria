@@ -8,6 +8,7 @@ import {
   isUnsafeAssistantOutput,
 } from "@/lib/ai/security-guard";
 import { ASSISTANT_LIMITS, ASSISTANT_MODELS } from "@/lib/assistant/config";
+import { MARCA } from "@/lib/config";
 import type {
   AssistantChatHistoryMessage,
   AssistantChatResponse,
@@ -72,7 +73,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
 
   const securityIssue = detectPromptSecurityIssue(question, { blockOffTopic: true });
   if (securityIssue) {
-    const content = assistantGuardResponse(securityIssue);
+    const content = `${assistantGuardResponse(securityIssue)}\n\n${supportFallbackMessage()}`;
     const saved = await saveAssistantMessage({
       conversationId: conversation.id,
       userId: input.userId,
@@ -81,6 +82,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       sources: [],
       confidence: "low",
     });
+    await recordUnansweredQuestion(input.userId, question, "", `Bloqueada: ${securityIssue.type}`);
     await logAssistantQuestion({
       userId: input.userId,
       question,
@@ -112,7 +114,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
     const sources = sourcesFromChunks(limitedChunks);
 
     if (limitedChunks.length === 0) {
-      const content = "No encuentro informacion oficial suficiente para responder eso con seguridad. Consulta con administracion o agrega esa informacion a la base de conocimiento.";
+      const content = supportFallbackMessage();
       const saved = await saveAssistantMessage({
         conversationId: conversation.id,
         userId: input.userId,
@@ -142,7 +144,7 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
 
     const conflict = detectPotentialConflict(question, limitedChunks);
     if (conflict) {
-      const content = `Encontre informacion contradictoria sobre ${conflict.subject} en las fuentes consultadas. Confirma con administracion antes de responderle eso a un cliente.`;
+      const content = `Encontre informacion contradictoria sobre ${conflict.subject} en las fuentes consultadas.\n\n${supportFallbackMessage()}`;
       const saved = await saveAssistantMessage({
         conversationId: conversation.id,
         userId: input.userId,
@@ -188,8 +190,9 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       topP: 0.8,
     });
 
-    const answer = isUnsafeAssistantOutput(generation.text)
-      ? "No puedo responder de forma segura a esa solicitud. Puedo ayudarte con informacion oficial de Arca, ventas, objeciones, politicas o comisiones."
+    const unsafeOutput = isUnsafeAssistantOutput(generation.text);
+    const answer = unsafeOutput
+      ? supportFallbackMessage()
       : sanitizeAnswer(generation.text);
     const saved = await saveAssistantMessage({
       conversationId: conversation.id,
@@ -200,8 +203,13 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       confidence,
     });
 
-    if (looksUnanswered(answer) || confidence === "low") {
-      await recordUnansweredQuestion(input.userId, question, sources[0]?.category || "", confidence === "low" ? "Confianza baja" : "Respuesta indica falta de informacion");
+    if (unsafeOutput || looksUnanswered(answer) || confidence === "low") {
+      await recordUnansweredQuestion(
+        input.userId,
+        question,
+        sources[0]?.category || "",
+        unsafeOutput ? "Respuesta insegura" : confidence === "low" ? "Confianza baja" : "Respuesta indica falta de informacion",
+      );
     }
 
     await logAssistantQuestion({
@@ -225,6 +233,21 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       confidence,
     };
   } catch (error) {
+    const content = supportFallbackMessage();
+    const saved = await saveAssistantMessage({
+      conversationId: conversation.id,
+      userId: input.userId,
+      role: "assistant",
+      content,
+      sources: [],
+      confidence: "low",
+    });
+    await recordUnansweredQuestion(
+      input.userId,
+      question,
+      "",
+      error instanceof Error ? `Error IA: ${error.name}` : "Error IA",
+    );
     await logAssistantQuestion({
       userId: input.userId,
       question,
@@ -237,8 +260,17 @@ export async function answerAssistantQuestion(input: AssistantChatInput): Promis
       errorCode: error instanceof Error ? error.name : "UNKNOWN",
     });
     console.error("[assistant-chat]", safeError(error), { userId: input.userId });
-    throw error;
+    return {
+      conversationId: conversation.id,
+      message: { id: saved.id, content },
+      sources: [],
+      confidence: "low",
+    };
   }
+}
+
+function supportFallbackMessage() {
+  return `No tengo informacion oficial suficiente para responder eso con seguridad. Contacta soporte por WhatsApp al ${MARCA.whatsappSoporte}. Ya envie esta pregunta al panel de administracion para agregar una respuesta oficial.`;
 }
 
 function sanitizeQuestion(question: string): string {
@@ -273,6 +305,7 @@ function looksUnanswered(answer: string): boolean {
     .toLowerCase();
   return normalized.includes("no encuentro informacion")
     || normalized.includes("no tengo informacion")
+    || normalized.includes("no pude generar")
     || normalized.includes("no aparece en el contexto")
     || normalized.includes("no me permite responder")
     || normalized.includes("confirma con administracion");

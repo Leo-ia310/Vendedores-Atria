@@ -77,13 +77,13 @@ No inventes precios, promociones, usuarios incluidos, descuentos, garantias o co
     priority: 95,
     content: `
 # Comisiones
-El vendedor gana 15% sobre la primera venta aprobada de cada cliente y 5% sobre cada renovacion aprobada.
+El vendedor gana 20% sobre el primer pago aprobado de cada cliente y 10% sobre cada pago recurrente aprobado.
 
 # Condiciones
 Solo se reconocen ventas aprobadas y verificadas por administracion. Una venta rechazada o reembolsada no debe generar comision vigente.
 
 # Ejemplo
-Para un plan Pro de 39 USD, la primera venta genera aproximadamente 5.85 USD de comision y cada renovacion genera aproximadamente 1.95 USD.
+Para un plan Pro de 39 USD, el primer pago genera aproximadamente 7.80 USD de comision y cada pago recurrente genera aproximadamente 3.90 USD.
 
 # Atribucion
 La atribucion corresponde al primer asesor que registro correctamente el prospecto con evidencia. Los duplicados pasan a revision administrativa.
@@ -233,9 +233,9 @@ try {
   let indexedChunks = 0;
 
   for (const document of DOCUMENTS) {
-    const inserted = await insertDocumentIfMissing(document);
+    const documentChanged = await upsertSeedDocument(document);
     const chunkCount = await countChunks(document.id);
-    if (!inserted && chunkCount > 0) continue;
+    if (!documentChanged && chunkCount > 0) continue;
 
     await client.query("delete from public.knowledge_chunks where document_id = $1", [document.id]);
     const chunks = chunkText(document.content);
@@ -277,14 +277,40 @@ try {
   await client.end();
 }
 
-async function insertDocumentIfMissing(document) {
-  const result = await client.query(
+async function upsertSeedDocument(document) {
+  const existing = await client.query(
+    "select content, title, category, tags, priority from public.knowledge_documents where id = $1",
+    [document.id],
+  );
+  const previous = existing.rows[0];
+  const changed = !previous
+    || previous.content !== document.content
+    || previous.title !== document.title
+    || previous.category !== document.category
+    || Number(previous.priority) !== document.priority
+    || JSON.stringify(previous.tags || []) !== JSON.stringify(document.tags);
+
+  if (!changed) return false;
+
+  await client.query(
     `
       insert into public.knowledge_documents (
         id, title, content, category, tags, status, priority, official,
         created_by, version, created_at, updated_at
       ) values ($1, $2, $3, $4, $5, 'active', $6, true, 'seed', 1, $7, $8)
-      on conflict (id) do nothing
+      on conflict (id) do update set
+        title = excluded.title,
+        content = excluded.content,
+        category = excluded.category,
+        tags = excluded.tags,
+        status = excluded.status,
+        priority = excluded.priority,
+        official = excluded.official,
+        version = case
+          when public.knowledge_documents.content is distinct from excluded.content then public.knowledge_documents.version + 1
+          else public.knowledge_documents.version
+        end,
+        updated_at = excluded.updated_at
     `,
     [
       document.id,
@@ -297,7 +323,7 @@ async function insertDocumentIfMissing(document) {
       now(),
     ],
   );
-  return result.rowCount > 0;
+  return changed;
 }
 
 async function countChunks(documentId) {

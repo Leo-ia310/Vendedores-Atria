@@ -4,7 +4,8 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input, Label, FieldError } from "@/components/ui/Field";
+import { Label, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { api } from "@/lib/api";
 import { useAuth, rutaPorRol } from "@/lib/auth/session";
 import { useToast } from "@/components/ui/Feedback";
@@ -52,16 +53,16 @@ export default function CambiarPasswordPage() {
         {!obligatorio && (
           <div>
             <Label htmlFor="actual" required>Contraseña actual</Label>
-            <Input id="actual" type="password" value={actual} onChange={(e) => setActual(e.target.value)} required={!obligatorio} />
+            <PasswordInput id="actual" value={actual} onChange={(e) => setActual(e.target.value)} required={!obligatorio} />
           </div>
         )}
         <div>
           <Label htmlFor="nueva" required>Nueva contraseña</Label>
-          <Input id="nueva" type="password" value={nueva} onChange={(e) => setNueva(e.target.value)} required />
+          <PasswordInput id="nueva" value={nueva} onChange={(e) => setNueva(e.target.value)} required />
         </div>
         <div>
           <Label htmlFor="confirmar" required>Confirmar contraseña</Label>
-          <Input id="confirmar" type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+          <PasswordInput id="confirmar" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
         </div>
         {error && <FieldError>{error}</FieldError>}
         <Button type="submit" variant="brand" size="lg" loading={cargando} className="w-full">

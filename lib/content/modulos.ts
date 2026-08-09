@@ -599,7 +599,7 @@ export const MODULOS: Modulo[] = [
     secciones: [
       {
         h: "Estructura",
-        p: ["15% sobre la primera venta y 5% sobre cada renovación. Los porcentajes son configurables por reglas vigentes."],
+        p: ["20% sobre el primer pago y 10% sobre cada pago recurrente. Los porcentajes son configurables por reglas vigentes."],
       },
       {
         h: "Reglas clave",
@@ -624,7 +624,7 @@ export const MODULOS: Modulo[] = [
         p: ["Las comisiones se programan y pagan según corte y método. Tú eres responsable de tus impuestos personales."],
       },
     ],
-    resumen: ["15% primera venta / 5% renovación.", "El link de referido atribuye la compra al asesor aunque el cliente compre desde otra ubicación.", "Solo cuenta lo aprobado y verificado.", "El cálculo lo hace el backend."],
+    resumen: ["20% primer pago / 10% pago recurrente.", "El link de referido atribuye la compra al asesor aunque el cliente compre desde otra ubicación.", "Solo cuenta lo aprobado y verificado.", "El cálculo lo hace el backend."],
     checklist: ["Sé los porcentajes.", "Entiendo qué venta genera comisión.", "Sé cómo funciona la atribución por link de referido.", "Sé cómo y cuándo se paga."],
     recursos: ["Política de comisiones"],
     tieneExamen: true,

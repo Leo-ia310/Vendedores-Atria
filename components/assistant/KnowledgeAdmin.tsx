@@ -113,6 +113,7 @@ export function KnowledgeAdmin() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<KnowledgeForm>(EMPTY_FORM);
+  const [questionToResolve, setQuestionToResolve] = useState<UnansweredQuestion | null>(null);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState("");
   const [reindexingAll, setReindexingAll] = useState(false);
@@ -147,12 +148,22 @@ export function KnowledgeAdmin() {
     }
   }
 
-  function openCreate() {
-    setForm(EMPTY_FORM);
+  function openCreate(question?: UnansweredQuestion) {
+    setQuestionToResolve(question || null);
+    setForm(question ? {
+      ...EMPTY_FORM,
+      title: `Respuesta: ${question.question.slice(0, 90)}`,
+      content: `Pregunta del vendedor:\n${question.question}\n\nRespuesta oficial:\n`,
+      category: normalizeCategory(question.category),
+      tags: "pregunta-sin-respuesta",
+      status: "active",
+      priority: 80,
+    } : EMPTY_FORM);
     setModalOpen(true);
   }
 
   function openEdit(document: KnowledgeDocument) {
+    setQuestionToResolve(null);
     setForm({
       id: document.id,
       title: document.title,
@@ -202,6 +213,10 @@ export function KnowledgeAdmin() {
     }
 
     toast(`Documento guardado. Chunks indexados: ${response.data.chunksIndexed ?? 0}.`, "success");
+    if (questionToResolve) {
+      await markQuestionResolved(questionToResolve.id, response.data.document.id);
+      setQuestionToResolve(null);
+    }
     setModalOpen(false);
     await loadData();
   }
@@ -257,10 +272,7 @@ export function KnowledgeAdmin() {
 
   async function resolveQuestion(question: UnansweredQuestion) {
     setBusyId(question.id);
-    const response = await adminFetch<{ resolved: boolean }>(`/api/academy/assistant/unanswered/${question.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ resolutionDocumentId: "" }),
-    });
+    const response = await markQuestionResolved(question.id, "");
     setBusyId("");
 
     if (!response.ok) {
@@ -288,7 +300,7 @@ export function KnowledgeAdmin() {
             <Button variant="secondary" onClick={reindexAll} loading={reindexingAll} disabled={documents.length === 0}>
               <RefreshCcw size={15} /> Reindexar activos
             </Button>
-            <Button onClick={openCreate}>
+            <Button onClick={() => openCreate()}>
               <Plus size={15} /> Nuevo documento
             </Button>
           </div>
@@ -308,7 +320,7 @@ export function KnowledgeAdmin() {
               icon={FileText}
               titulo="No hay documentos"
               descripcion="Crea el primer documento para que el asistente pueda responder con informacion oficial."
-              accion={<Button onClick={openCreate}><Plus size={15} /> Crear documento</Button>}
+              accion={<Button onClick={() => openCreate()}><Plus size={15} /> Crear documento</Button>}
             />
           ) : (
             documents.map((document) => (
@@ -382,14 +394,22 @@ export function KnowledgeAdmin() {
                     {question.category ? `${question.category} · ` : ""}{question.notes ? `${question.notes} · ` : ""}{formatearFecha(question.created_at)}
                   </p>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  loading={busyId === question.id}
-                  onClick={() => void resolveQuestion(question)}
-                >
-                  <Check size={14} /> Marcar resuelta
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => openCreate(question)}
+                  >
+                    <Plus size={14} /> Crear respuesta
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    loading={busyId === question.id}
+                    onClick={() => void resolveQuestion(question)}
+                  >
+                    <Check size={14} /> Marcar resuelta
+                  </Button>
+                </div>
               </div>
             ))
           )}
@@ -410,6 +430,11 @@ export function KnowledgeAdmin() {
           </>
         )}
       >
+        {questionToResolve && (
+          <div className="mb-4 rounded-md border border-[color:var(--color-tertiary)]/30 bg-[color:var(--color-tertiary-light)] px-3 py-2 text-[13px] text-[color:var(--color-primary)]">
+            Al guardar, esta pregunta quedara resuelta y la respuesta se indexara para futuras consultas.
+          </div>
+        )}
         <div className="grid gap-4">
           <div>
             <Label htmlFor="knowledge-title" required>Titulo</Label>
@@ -516,6 +541,18 @@ function Metric({ label, value }: { label: string; value: number }) {
       <p className="mt-1 text-[20px] font-semibold text-[color:var(--color-text-primary)]">{value}</p>
     </div>
   );
+}
+
+function normalizeCategory(category?: string): KnowledgeCategory {
+  if (CATEGORY_OPTIONS.includes(category as KnowledgeCategory)) return category as KnowledgeCategory;
+  return "general";
+}
+
+async function markQuestionResolved(questionId: string, resolutionDocumentId: string) {
+  return adminFetch<{ resolved: boolean }>(`/api/academy/assistant/unanswered/${questionId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ resolutionDocumentId }),
+  });
 }
 
 function statusTone(status: KnowledgeStatus): "success" | "warning" | "neutral" {
