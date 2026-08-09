@@ -26,7 +26,31 @@ const INICIAL: Datos = {
   confirmar: "", consentimientoDatos: false, confirmaVeracidad: false, aceptaComunicaciones: false,
 };
 
-const PAISES = ["Honduras", "Nicaragua", "Guatemala", "Costa Rica", "El Salvador", "Otro"];
+const PAISES = [
+  "Argentina",
+  "Belice",
+  "Bolivia",
+  "Brasil",
+  "Chile",
+  "Colombia",
+  "Costa Rica",
+  "Cuba",
+  "Ecuador",
+  "El Salvador",
+  "Guatemala",
+  "Haiti",
+  "Honduras",
+  "Mexico",
+  "Nicaragua",
+  "Panama",
+  "Paraguay",
+  "Peru",
+  "Puerto Rico",
+  "Republica Dominicana",
+  "Uruguay",
+  "Venezuela",
+  "Otro pais de Latinoamerica",
+];
 const PASOS = ["Datos personales", "Perfil comercial", "Cuenta y consentimientos"];
 
 export default function RegistroPage() {
