@@ -22,19 +22,19 @@ export default function SimuladorIndex() {
           <Link
             key={e.id}
             href={`/simulador/${e.id}`}
-            className="arca-card group p-5 transition hover:border-[color:var(--color-tertiary)]"
+            className="arca-card group p-4 transition hover:border-[color:var(--color-tertiary)] sm:p-5"
           >
-            <div className="flex items-start justify-between">
-              <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[color:var(--color-surface-2)] text-[color:var(--color-secondary)]">
+            <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[color:var(--color-surface-2)] text-[color:var(--color-secondary)]">
                 <MessageSquare size={18} />
               </span>
               <Badge tono={e.difficultyLevel === "ADVANCED" ? "error" : e.difficultyLevel === "INTERMEDIATE" ? "warning" : "success"}>
                 {SALES_DIFFICULTY_LABELS[e.difficultyLevel]}
               </Badge>
             </div>
-            <h3 className="mt-4 text-[16px] font-semibold text-[color:var(--color-text-primary)]">{e.titulo}</h3>
-            <p className="text-[12px] font-medium text-[color:var(--color-text-muted)]">{e.perfil}</p>
-            <p className="mt-2 text-[13px] leading-6 text-[color:var(--color-text-secondary)]">{e.descripcion}</p>
+            <h3 className="mt-4 break-words text-[16px] font-semibold text-[color:var(--color-text-primary)]">{e.titulo}</h3>
+            <p className="break-words text-[12px] font-medium text-[color:var(--color-text-muted)]">{e.perfil}</p>
+            <p className="mt-2 break-words text-[13px] leading-6 text-[color:var(--color-text-secondary)]">{e.descripcion}</p>
             <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-[color:var(--color-secondary)]">
               Practicar <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
             </span>

@@ -59,7 +59,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="arca-card overflow-hidden">
-      <div className="border-b border-[color:var(--color-border)] px-6 py-5">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-4 sm:px-6 sm:py-5">
         <h1 className="text-xl">Bienvenido a la Academia Comercial ATRIA</h1>
         <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
           Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}
@@ -69,7 +69,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <div className="space-y-4 px-6 py-6">
+      <div className="space-y-4 px-4 py-5 sm:px-6 sm:py-6">
         {paso === 0 && (
           <div className="space-y-3 text-[14px] leading-6 text-[color:var(--color-text-secondary)]">
             <p>
@@ -103,7 +103,7 @@ export default function OnboardingPage() {
             <p className="text-[14px] leading-6 text-[color:var(--color-text-secondary)]">
               Ya te registraste. Esto es lo que sigue antes de empezar a vender:
             </p>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 gap-2 min-[520px]:grid-cols-5">
               {CAMINO.map(({ icon: Icon, t, activo }) => (
                 <div
                   key={t}
@@ -124,9 +124,9 @@ export default function OnboardingPage() {
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-[color:var(--color-border)] px-6 py-4">
+      <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--color-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         {paso > 0 ? (
-          <Button variant="ghost" onClick={() => setPaso((p) => p - 1)}>
+          <Button className="w-full sm:w-auto" variant="ghost" onClick={() => setPaso((p) => p - 1)}>
             <ArrowLeft size={16} /> Atrás
           </Button>
         ) : (
@@ -134,11 +134,11 @@ export default function OnboardingPage() {
         )}
 
         {paso < PASOS.length - 1 ? (
-          <Button variant="brand" onClick={() => setPaso((p) => p + 1)}>
+          <Button className="w-full sm:w-auto" variant="brand" onClick={() => setPaso((p) => p + 1)}>
             Continuar <ArrowRight size={16} />
           </Button>
         ) : (
-          <Button variant="brand" onClick={comenzar} loading={cargando}>
+          <Button className="w-full sm:w-auto" variant="brand" onClick={comenzar} loading={cargando}>
             <Check size={16} /> Comenzar capacitación
           </Button>
         )}

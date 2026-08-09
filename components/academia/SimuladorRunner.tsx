@@ -190,10 +190,10 @@ export function SimuladorRunner({ escenario }: { escenario: SalesSimulatorScenar
 
   return (
     <div className="space-y-4">
-      <div className="arca-card flex flex-wrap items-center justify-between gap-3 p-4">
-        <div>
+      <div className="arca-card flex flex-col gap-3 p-4 min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between">
+        <div className="min-w-0">
           <p className="text-label">Escenario activo</p>
-          <p className="mt-1 text-[14px] font-semibold text-[color:var(--color-text-primary)]">
+          <p className="mt-1 break-words text-[14px] font-semibold text-[color:var(--color-text-primary)]">
             {escenario.aiProfile.businessType} · {escenario.aiProfile.currentSystem}
           </p>
         </div>
@@ -213,7 +213,7 @@ export function SimuladorRunner({ escenario }: { escenario: SalesSimulatorScenar
       )}
 
       <div className="arca-card p-4 sm:p-5">
-        <div className="max-h-[58vh] min-h-[320px] space-y-3 overflow-y-auto pr-1">
+        <div className="max-h-[55dvh] min-h-[260px] space-y-3 overflow-y-auto pr-1 sm:min-h-[320px]">
           {messages.map((message, index) => (
             <Burbuja
               key={`${message.role}-${index}-${message.createdAt || ""}`}
@@ -238,7 +238,7 @@ export function SimuladorRunner({ escenario }: { escenario: SalesSimulatorScenar
                     key={suggestion}
                     type="button"
                     onClick={() => setInput(suggestion)}
-                    className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-left text-[12px] text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-tertiary)]"
+                    className="w-full rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-left text-[12px] text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-tertiary)] min-[520px]:w-auto"
                   >
                     {suggestion}
                   </button>
@@ -259,16 +259,16 @@ export function SimuladorRunner({ escenario }: { escenario: SalesSimulatorScenar
               />
             </label>
 
-            <div className="flex flex-wrap justify-between gap-2">
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={sendMessage} loading={responding} disabled={!input.trim() || !canSend}>
+            <div className="flex flex-col gap-2 min-[520px]:flex-row min-[520px]:justify-between">
+              <div className="flex flex-col gap-2 min-[520px]:flex-row min-[520px]:flex-wrap">
+                <Button className="w-full min-[520px]:w-auto" onClick={sendMessage} loading={responding} disabled={!input.trim() || !canSend}>
                   <SendHorizontal size={16} /> Enviar
                 </Button>
-                <Button variant="secondary" onClick={finishSimulation} loading={finishing} disabled={!hasSellerMessages || responding || finishing}>
+                <Button className="w-full min-[520px]:w-auto" variant="secondary" onClick={finishSimulation} loading={finishing} disabled={!hasSellerMessages || responding || finishing}>
                   <ClipboardCheck size={16} /> Finalizar simulacion
                 </Button>
               </div>
-              <Button variant="ghost" onClick={restart} disabled={responding || finishing}>
+              <Button className="w-full min-[520px]:w-auto" variant="ghost" onClick={restart} disabled={responding || finishing}>
                 <RotateCcw size={16} /> Reiniciar
               </Button>
             </div>
@@ -297,7 +297,7 @@ function EvaluationResult({
   onRestart: () => void;
 }) {
   return (
-    <div className="arca-card border-[color:var(--color-tertiary)] p-6">
+    <div className="arca-card border-[color:var(--color-tertiary)] p-4 sm:p-6">
       <div className="text-center">
         <Trophy size={40} className="mx-auto text-[color:var(--color-secondary)]" />
         <p className="mt-3 text-2xl">{evaluation.score}%</p>
@@ -306,7 +306,7 @@ function EvaluationResult({
         </p>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-5">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {(Object.keys(SALES_EVALUATION_CATEGORY_LABELS) as (keyof SalesEvaluationCategories)[]).map((key) => (
           <div key={key} className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-3">
             <p className="text-[11px] font-semibold uppercase text-[color:var(--color-text-muted)]">
@@ -338,11 +338,11 @@ function EvaluationResult({
         </p>
       </div>
 
-      <div className="mt-6 flex flex-wrap justify-center gap-2">
-        <Button variant="secondary" onClick={onRestart}>
+      <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row sm:flex-wrap">
+        <Button className="w-full sm:w-auto" variant="secondary" onClick={onRestart}>
           <RotateCcw size={16} /> Repetir escenario
         </Button>
-        <Link href="/simulador" className="arca-btn arca-btn-brand">
+        <Link href="/simulador" className="arca-btn arca-btn-brand w-full sm:w-auto">
           Otros escenarios
         </Link>
       </div>
@@ -379,7 +379,7 @@ function Burbuja({ lado, texto }: { lado: "cliente" | "tu"; texto: string }) {
         {esCliente ? <User size={15} /> : <MessageSquare size={15} />}
       </span>
       <div className={cn(
-        "max-w-[min(85%,680px)] whitespace-pre-wrap break-words rounded-[12px] px-4 py-2.5 text-[14px] leading-6",
+        "max-w-[calc(100%_-_2.5rem)] whitespace-pre-wrap break-words rounded-[12px] px-3 py-2.5 text-[14px] leading-6 sm:max-w-[min(85%,680px)] sm:px-4",
         esCliente
           ? "rounded-tl-none bg-[color:var(--color-surface-2)] text-[color:var(--color-text-primary)]"
           : "rounded-tr-none bg-[color:var(--color-primary)] text-white",

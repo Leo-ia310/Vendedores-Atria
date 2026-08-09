@@ -16,9 +16,9 @@ export default function EscenarioPage({
 
   if (!e) {
     return (
-      <div className="arca-card p-8 text-center">
+      <div className="arca-card p-5 text-center sm:p-8">
         <p>Escenario no encontrado.</p>
-        <Link href="/simulador" className="arca-btn arca-btn-secondary mt-4">Volver al simulador</Link>
+        <Link href="/simulador" className="arca-btn arca-btn-secondary mt-4 w-full sm:w-auto">Volver al simulador</Link>
       </div>
     );
   }

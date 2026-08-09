@@ -16,9 +16,9 @@ export default function ExamenModuloPage({
 
   if (!m) {
     return (
-      <div className="arca-card p-8 text-center">
+      <div className="arca-card p-5 text-center sm:p-8">
         <p>Módulo no encontrado.</p>
-        <Link href="/academia" className="arca-btn arca-btn-secondary mt-4">Volver</Link>
+        <Link href="/academia" className="arca-btn arca-btn-secondary mt-4 w-full sm:w-auto">Volver</Link>
       </div>
     );
   }

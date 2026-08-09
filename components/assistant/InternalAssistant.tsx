@@ -161,8 +161,8 @@ export function InternalAssistant() {
   const canSend = Boolean(input.trim()) && !sending;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-      <aside className="arca-card p-4">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <aside className="arca-card min-w-0 p-3 sm:p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <History size={16} className="text-[color:var(--color-secondary)]" />
@@ -173,7 +173,7 @@ export function InternalAssistant() {
           </Button>
         </div>
 
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 max-h-60 space-y-2 overflow-y-auto pr-1 lg:max-h-none lg:overflow-visible lg:pr-0">
           {loadingHistory ? (
             [0, 1, 2].map((item) => <Skeleton key={item} className="h-11 w-full" />)
           ) : conversations.length === 0 ? (
@@ -205,12 +205,12 @@ export function InternalAssistant() {
         </div>
       </aside>
 
-      <section className="arca-card flex min-h-[680px] flex-col overflow-hidden">
+      <section className="arca-card flex min-h-[560px] min-w-0 flex-col overflow-hidden sm:min-h-[680px]">
         <div className="border-b border-[color:var(--color-border)] px-4 py-4 sm:px-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
+            <div className="min-w-0">
               <p className="text-[15px] font-semibold text-[color:var(--color-text-primary)]">Asistente Arca</p>
-              <p className="mt-0.5 text-[13px] text-[color:var(--color-text-muted)]">
+              <p className="mt-0.5 break-words text-[13px] text-[color:var(--color-text-muted)]">
                 Pregunta sobre producto, precios, ventas, objeciones, politicas o comisiones.
               </p>
             </div>
@@ -224,7 +224,7 @@ export function InternalAssistant() {
                   key={question}
                   type="button"
                   onClick={() => setInput(question)}
-                  className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-left text-[12px] text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-tertiary)]"
+                  className="w-full rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-left text-[12px] text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-tertiary)] min-[520px]:w-auto"
                 >
                   {question}
                 </button>
@@ -269,11 +269,11 @@ export function InternalAssistant() {
             maxLength={MAX_CLIENT_QUESTION_CHARS}
             disabled={sending}
           />
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="mt-3 flex flex-col gap-2 min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between">
             <span className="text-[11px] text-[color:var(--color-text-muted)]">
               Enter envia. Shift+Enter agrega una linea.
             </span>
-            <Button onClick={() => void sendQuestion()} loading={sending} disabled={!canSend}>
+            <Button className="w-full min-[520px]:w-auto" onClick={() => void sendQuestion()} loading={sending} disabled={!canSend}>
               <SendHorizontal size={16} /> Enviar
             </Button>
           </div>
@@ -299,7 +299,7 @@ function AssistantBubble({ message }: { message: UIMessage }) {
       </span>
       <div
         className={cn(
-          "max-w-[min(88%,760px)] whitespace-pre-wrap break-words rounded-[12px] px-4 py-2.5 text-[14px] leading-6",
+          "max-w-[calc(100%_-_2.5rem)] whitespace-pre-wrap break-words rounded-[12px] px-3 py-2.5 text-[14px] leading-6 sm:max-w-[min(88%,760px)] sm:px-4",
           isAssistant
             ? "rounded-tl-none bg-[color:var(--color-surface-2)] text-[color:var(--color-text-primary)]"
             : "rounded-tr-none bg-[color:var(--color-primary)] text-white",

@@ -39,9 +39,9 @@ export default function ModuloPage({
 
   if (!m) {
     return (
-      <div className="arca-card p-8 text-center">
+      <div className="arca-card p-5 text-center sm:p-8">
         <p>Módulo no encontrado.</p>
-        <Link href="/academia" className="arca-btn arca-btn-secondary mt-4">Volver a la academia</Link>
+        <Link href="/academia" className="arca-btn arca-btn-secondary mt-4 w-full sm:w-auto">Volver a la academia</Link>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function ModuloPage({
         descripcion={m.objetivo}
         breadcrumb={[{ label: "Academia", href: "/academia" }, { label: `Módulo ${m.orden}` }]}
         accion={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge tono="neutral">{m.nivel}</Badge>
             <Badge tono="neutral">{m.tiempo}</Badge>
             {completo && <Badge tono="success">Completado</Badge>}
@@ -99,7 +99,7 @@ export default function ModuloPage({
                 <div className="relative aspect-video w-full bg-[color:var(--color-primary)]">
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
                     <PlayCircle size={44} className="text-white/85" />
-                    <p className="px-6 text-[12px] font-semibold uppercase tracking-[0.14em] text-white/70">
+                    <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 sm:px-6 sm:text-[12px] sm:tracking-[0.14em]">
                       {m.video}
                     </p>
                   </div>
@@ -115,7 +115,7 @@ export default function ModuloPage({
         )}
 
         {m.secciones.map((s) => (
-          <section key={s.h} className="arca-card p-5">
+          <section key={s.h} className="arca-card p-4 sm:p-5">
             <h2 className="text-[17px] font-semibold text-[color:var(--color-text-primary)]">{s.h}</h2>
             <div className="mt-2 space-y-2">
               {s.p.map((p, i) => (
@@ -142,7 +142,7 @@ export default function ModuloPage({
           <Bloque icon={AlertTriangle} tono="warning" titulo="Errores comunes" items={m.erroresComunes} />
         )}
 
-        <section className="arca-card p-5">
+        <section className="arca-card p-4 sm:p-5">
           <div className="flex items-center gap-2">
             <ListChecks size={18} className="text-[color:var(--color-secondary)]" />
             <h2 className="text-[17px] font-semibold">Resumen</h2>
@@ -157,9 +157,9 @@ export default function ModuloPage({
           </ul>
         </section>
 
-        <section className="arca-card p-5">
+        <section className="arca-card p-4 sm:p-5">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <ClipboardCheck size={18} className="text-[color:var(--color-secondary)]" />
               <h2 className="text-[17px] font-semibold">Lista de verificación</h2>
             </div>
@@ -197,7 +197,7 @@ export default function ModuloPage({
         </section>
 
         {m.recursos && (
-          <section className="arca-card p-5">
+          <section className="arca-card p-4 sm:p-5">
             <div className="flex items-center gap-2">
               <FileText size={18} className="text-[color:var(--color-secondary)]" />
               <h2 className="text-[17px] font-semibold">Recursos descargables</h2>
@@ -217,12 +217,12 @@ export default function ModuloPage({
                     key={r.href}
                     href={r.href}
                     download
-                    className="flex min-h-16 items-center justify-between gap-3 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-[13px] transition hover:border-[color:var(--color-secondary)] hover:bg-[color:var(--color-surface)]"
+                    className="flex min-h-16 flex-col items-start justify-between gap-2 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2 text-[13px] transition hover:border-[color:var(--color-secondary)] hover:bg-[color:var(--color-surface)] min-[520px]:flex-row min-[520px]:items-center min-[520px]:gap-3"
                   >
                     <span className="min-w-0">
-                      <span className="block font-semibold text-[color:var(--color-text-primary)]">{r.titulo}</span>
+                      <span className="block break-words font-semibold text-[color:var(--color-text-primary)]">{r.titulo}</span>
                       {r.descripcion && (
-                        <span className="mt-0.5 block text-[12px] text-[color:var(--color-text-muted)]">{r.descripcion}</span>
+                        <span className="mt-0.5 block break-words text-[12px] text-[color:var(--color-text-muted)]">{r.descripcion}</span>
                       )}
                     </span>
                     <span className="flex shrink-0 items-center gap-1 text-[12px] font-semibold text-[color:var(--color-secondary)]">
@@ -237,17 +237,17 @@ export default function ModuloPage({
 
         {/* Acciones */}
         <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <Button variant={completo ? "secondary" : "primary"} onClick={marcarCompletado} loading={guardando}>
+          <Button className="w-full sm:w-auto" variant={completo ? "secondary" : "primary"} onClick={marcarCompletado} loading={guardando}>
             <Check size={16} /> {completo ? "Módulo completado" : "Marcar como completado"}
           </Button>
 
           {m.tieneExamen && (
             esFinal ? (
-              <Link href="/examen-final" className="arca-btn arca-btn-brand">
+              <Link href="/examen-final" className="arca-btn arca-btn-brand w-full sm:w-auto">
                 Ir al examen final <ArrowRight size={16} />
               </Link>
             ) : (
-              <Link href={`/academia/${m.id}/examen`} className="arca-btn arca-btn-brand">
+              <Link href={`/academia/${m.id}/examen`} className="arca-btn arca-btn-brand w-full sm:w-auto">
                 Presentar examen del módulo <ArrowRight size={16} />
               </Link>
             )
@@ -275,7 +275,7 @@ function Bloque({
       : "border-[color:var(--color-warning)]/30 bg-[color:var(--color-warning-bg)]";
   const color = tono === "info" ? "var(--color-info)" : "var(--color-warning)";
   return (
-    <section className={`rounded-[12px] border p-5 ${clase}`}>
+    <section className={`rounded-[12px] border p-4 sm:p-5 ${clase}`}>
       <div className="flex items-center gap-2">
         <Icon size={18} style={{ color }} />
         <h2 className="text-[16px] font-semibold" style={{ color }}>{titulo}</h2>

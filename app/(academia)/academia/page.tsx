@@ -30,13 +30,13 @@ export default function AcademiaIndex() {
         descripcion="Avanza módulo por módulo. Completa el contenido y aprueba el examen para desbloquear el siguiente."
       />
 
-      <div className="arca-card mb-6 p-5">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="arca-card mb-6 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between">
+          <div className="min-w-0">
             <p className="text-label">Progreso general</p>
             <p className="mt-1 text-2xl">{pct}%</p>
           </div>
-          <div className="flex items-center gap-2 text-[13px] text-[color:var(--color-text-muted)]">
+          <div className="flex min-w-0 items-center gap-2 text-[13px] text-[color:var(--color-text-muted)]">
             <GraduationCap size={16} />
             {completados} de {total} módulos completados
           </div>
@@ -45,7 +45,7 @@ export default function AcademiaIndex() {
           <ProgressBar valor={pct} />
         </div>
         {pct === 100 && (
-          <Link href="/certificacion" className="arca-btn arca-btn-brand mt-4">
+          <Link href="/certificacion" className="arca-btn arca-btn-brand mt-4 w-full sm:w-auto">
             <Award size={16} /> Ir a certificación
           </Link>
         )}
@@ -66,7 +66,7 @@ export default function AcademiaIndex() {
             const cuerpo = (
               <div
                 className={cn(
-                  "arca-card flex items-center gap-4 p-4 transition",
+                  "arca-card flex items-start gap-3 p-4 transition sm:gap-4",
                   abierto ? "hover:border-[color:var(--color-tertiary)]" : "opacity-60",
                 )}
               >
@@ -90,13 +90,13 @@ export default function AcademiaIndex() {
                     {completo && <Badge tono="success">Completado</Badge>}
                     {m.tieneExamen && aprobado && <Badge tono="info">Examen aprobado</Badge>}
                   </div>
-                  <h3 className="mt-1 truncate text-[15px] font-semibold text-[color:var(--color-text-primary)]">
+                  <h3 className="mt-1 break-words text-[15px] font-semibold text-[color:var(--color-text-primary)]">
                     {m.titulo}
                   </h3>
-                  <p className="truncate text-[13px] text-[color:var(--color-text-muted)]">{m.objetivo}</p>
+                  <p className="break-words text-[13px] leading-5 text-[color:var(--color-text-muted)]">{m.objetivo}</p>
                 </div>
                 {abierto && (
-                  <PlayCircle size={22} className="shrink-0 text-[color:var(--color-secondary)]" />
+                  <PlayCircle size={22} className="mt-1 shrink-0 text-[color:var(--color-secondary)]" />
                 )}
               </div>
             );

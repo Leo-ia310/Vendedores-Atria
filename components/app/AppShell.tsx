@@ -170,7 +170,7 @@ export function AppShell({
             <Menu size={18} />
           </button>
           <div className="min-w-0 flex-1" />
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
             {(rolEfectivo === "vendedor" || rolEfectivo === "admin") && (
               <NotificacionesBell notificaciones={notificaciones} onAbrir={marcarNotificacionAbierta} />
             )}
@@ -191,7 +191,7 @@ export function AppShell({
             </button>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="mx-auto w-full max-w-7xl px-3 py-5 min-[380px]:px-4 sm:px-6 sm:py-8">{children}</main>
       </div>
     </div>
   );

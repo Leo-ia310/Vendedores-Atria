@@ -28,17 +28,19 @@ export default function PanelAcademia() {
               <Link
                 key={m.id}
                 href={`/academia/${m.id}`}
-                className="arca-card flex items-center gap-3 p-3.5 transition hover:border-[color:var(--color-tertiary)]"
+                className="arca-card flex items-start gap-3 p-3.5 transition hover:border-[color:var(--color-tertiary)]"
               >
                 {completo ? (
-                  <CheckCircle2 size={18} className="text-[color:var(--color-success)]" />
+                  <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-[color:var(--color-success)]" />
                 ) : (
-                  <Circle size={18} className="text-[color:var(--color-text-muted)]" />
+                  <Circle size={18} className="mt-0.5 shrink-0 text-[color:var(--color-text-muted)]" />
                 )}
-                <BookOpen size={16} className="text-[color:var(--color-text-muted)]" />
-                <span className="flex-1 text-[14px] font-medium">{m.titulo}</span>
-                {examenAprobado(m.id) && <Badge tono="info">Examen aprobado</Badge>}
-                <span className="text-[12px] text-[color:var(--color-text-muted)]">{m.tiempo}</span>
+                <BookOpen size={16} className="mt-0.5 shrink-0 text-[color:var(--color-text-muted)]" />
+                <span className="min-w-0 flex-1 break-words text-[14px] font-medium">{m.titulo}</span>
+                <span className="flex shrink-0 flex-col items-end gap-1 min-[520px]:flex-row min-[520px]:items-center">
+                  {examenAprobado(m.id) && <Badge tono="info">Examen aprobado</Badge>}
+                  <span className="text-[12px] text-[color:var(--color-text-muted)]">{m.tiempo}</span>
+                </span>
               </Link>
             );
           })}

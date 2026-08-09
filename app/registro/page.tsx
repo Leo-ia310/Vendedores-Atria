@@ -116,7 +116,7 @@ export default function RegistroPage() {
 
   return (
     <div className="arca-card overflow-hidden">
-      <div className="border-b border-[color:var(--color-border)] px-6 py-5">
+      <div className="border-b border-[color:var(--color-border)] px-4 py-4 sm:px-6 sm:py-5">
         <h1 className="text-xl">Registro de candidato</h1>
         <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
           Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}
@@ -126,7 +126,7 @@ export default function RegistroPage() {
         </div>
       </div>
 
-      <div className="space-y-4 px-6 py-6">
+      <div className="space-y-4 px-4 py-5 sm:px-6 sm:py-6">
         {paso === 0 && (
           <>
             <div>
@@ -270,21 +270,21 @@ export default function RegistroPage() {
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-[color:var(--color-border)] px-6 py-4">
+      <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--color-border)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         {paso > 0 ? (
-          <Button variant="ghost" onClick={() => setPaso((p) => p - 1)}>
+          <Button className="w-full sm:w-auto" variant="ghost" onClick={() => setPaso((p) => p - 1)}>
             <ArrowLeft size={16} /> Atrás
           </Button>
         ) : (
-          <Link href="/login" className="arca-btn arca-btn-ghost">Ya tengo cuenta</Link>
+          <Link href="/login" className="arca-btn arca-btn-ghost w-full sm:w-auto">Ya tengo cuenta</Link>
         )}
 
         {paso < PASOS.length - 1 ? (
-          <Button variant="brand" onClick={siguiente}>
+          <Button className="w-full sm:w-auto" variant="brand" onClick={siguiente}>
             Continuar <ArrowRight size={16} />
           </Button>
         ) : (
-          <Button variant="brand" onClick={enviar} loading={cargando}>
+          <Button className="w-full sm:w-auto" variant="brand" onClick={enviar} loading={cargando}>
             <Check size={16} /> Crear cuenta y empezar
           </Button>
         )}

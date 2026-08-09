@@ -139,10 +139,10 @@ export function ExamenRunner({
 
   if (error) {
     return (
-      <div className="arca-card p-6 text-center">
+      <div className="arca-card p-4 text-center sm:p-6">
         <AlertTriangle className="mx-auto text-[color:var(--color-warning)]" size={32} />
         <p className="mt-3 text-[14px] text-[color:var(--color-text-secondary)]">{error}</p>
-        <Link href={volverHref} className="arca-btn arca-btn-secondary mt-4">Volver</Link>
+        <Link href={volverHref} className="arca-btn arca-btn-secondary mt-4 w-full sm:w-auto">Volver</Link>
       </div>
     );
   }
@@ -152,7 +152,7 @@ export function ExamenRunner({
       <div className="space-y-5">
         <div
           className={cn(
-            "arca-card p-6 text-center",
+            "arca-card p-4 text-center sm:p-6",
             resultado.aprobado ? "border-[color:var(--color-success)]" : "border-[color:var(--color-error)]",
           )}
         >
@@ -172,21 +172,21 @@ export function ExamenRunner({
               Ya aparecerá como examen aprobado en Academia y Certificación.
             </p>
           )}
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row sm:flex-wrap">
             {resultado.aprobado && siguienteHref ? (
-              <Link href={siguienteHref} className="arca-btn arca-btn-brand">
+              <Link href={siguienteHref} className="arca-btn arca-btn-brand w-full sm:w-auto">
                 {siguienteLabel || "Continuar"} <ArrowRight size={16} />
               </Link>
             ) : null}
             {!resultado.aprobado && (resultado.intentosRestantes === null || resultado.intentosRestantes > 0) && (
-              <Button variant="secondary" onClick={cargar}>
+              <Button className="w-full sm:w-auto" variant="secondary" onClick={cargar}>
                 <RotateCcw size={16} />{" "}
                 {resultado.intentosRestantes === null
                   ? "Reintentar"
                   : `Reintentar (${resultado.intentosRestantes} restantes)`}
               </Button>
             )}
-            <Link href={volverHref} className="arca-btn arca-btn-ghost">Volver</Link>
+            <Link href={volverHref} className="arca-btn arca-btn-ghost w-full sm:w-auto">Volver</Link>
           </div>
         </div>
 
@@ -202,13 +202,13 @@ export function ExamenRunner({
                   ) : (
                     <XCircle size={18} className="mt-0.5 shrink-0 text-[color:var(--color-error)]" />
                   )}
-                  <div>
-                    <p className="text-[14px] font-medium">{i + 1}. {p.Pregunta}</p>
+                  <div className="min-w-0">
+                    <p className="break-words text-[14px] font-medium">{i + 1}. {p.Pregunta}</p>
                     <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
                       Tu respuesta: {respuestas[p.QuestionId] || "—"}
                     </p>
                     {det?.explicacion && (
-                      <p className="mt-1 text-[13px] text-[color:var(--color-text-secondary)]">
+                      <p className="mt-1 break-words text-[13px] text-[color:var(--color-text-secondary)]">
                         <span className="font-medium">Explicación:</span> {det.explicacion}
                       </p>
                     )}
@@ -224,21 +224,21 @@ export function ExamenRunner({
 
   if (!preguntas || preguntas.length === 0) {
     return (
-      <div className="arca-card p-6 text-center">
+      <div className="arca-card p-4 text-center sm:p-6">
         <p className="text-[14px] text-[color:var(--color-text-secondary)]">
           Este examen aún no tiene preguntas cargadas.
         </p>
-        <Link href={volverHref} className="arca-btn arca-btn-secondary mt-4">Volver</Link>
+        <Link href={volverHref} className="arca-btn arca-btn-secondary mt-4 w-full sm:w-auto">Volver</Link>
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
-      <div className="arca-card flex items-center justify-between p-4">
-        <div>
-          <p className="text-[14px] font-semibold">{titulo}</p>
-          <p className="text-[12px] text-[color:var(--color-text-muted)]">
+      <div className="arca-card flex flex-col gap-3 p-4 min-[520px]:flex-row min-[520px]:items-center min-[520px]:justify-between">
+        <div className="min-w-0">
+          <p className="break-words text-[14px] font-semibold">{titulo}</p>
+          <p className="break-words text-[12px] text-[color:var(--color-text-muted)]">
             {totalRespondidas} de {preguntas.length} respondidas
             {intentosRestantes === null ? " · sin límite de intentos" : ` · ${intentosRestantes} intentos`}
           </p>
@@ -261,8 +261,8 @@ export function ExamenRunner({
       {preguntas.map((p, i) => {
         const opciones = parseOpciones(p.Opciones, p.Tipo);
         return (
-          <div key={p.QuestionId} className="arca-card p-5">
-            <p className="text-[15px] font-medium text-[color:var(--color-text-primary)]">
+          <div key={p.QuestionId} className="arca-card p-4 sm:p-5">
+            <p className="break-words text-[15px] font-medium text-[color:var(--color-text-primary)]">
               {i + 1}. {p.Pregunta}
             </p>
             {p.Tipo === "abierta" ? (
@@ -281,7 +281,7 @@ export function ExamenRunner({
                     <label
                       key={op}
                       className={cn(
-                        "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-[14px] transition",
+                        "flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 text-[14px] transition",
                         sel
                           ? "border-[color:var(--color-tertiary)] bg-[color:var(--color-surface-2)]"
                           : "border-[color:var(--color-border)] hover:border-[color:var(--color-border-strong)]",
@@ -292,9 +292,9 @@ export function ExamenRunner({
                         name={p.QuestionId}
                         checked={sel}
                         onChange={() => setRespuestas((r) => ({ ...r, [p.QuestionId]: op }))}
-                        className="h-4 w-4 accent-[color:var(--color-secondary)]"
+                        className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-secondary)]"
                       />
-                      {op}
+                      <span className="min-w-0 break-words">{op}</span>
                     </label>
                   );
                 })}
@@ -304,9 +304,10 @@ export function ExamenRunner({
         );
       })}
 
-      <div className="flex items-center justify-between border-t border-[color:var(--color-border)] pt-5">
-        <Link href={volverHref} className="arca-btn arca-btn-ghost">Cancelar</Link>
+      <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--color-border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <Link href={volverHref} className="arca-btn arca-btn-ghost w-full sm:w-auto">Cancelar</Link>
         <Button
+          className="w-full sm:w-auto"
           variant="brand"
           onClick={enviar}
           loading={enviando}

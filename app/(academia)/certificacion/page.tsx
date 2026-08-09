@@ -94,12 +94,12 @@ export default function CertificacionPage() {
     return (
       <>
         <PageHeader titulo="¡Certificación completada!" descripcion="Guarda estas credenciales ahora: la contraseña temporal no se volverá a mostrar." />
-        <div className="arca-card border-[color:var(--color-success)] p-6">
-          <div className="flex items-center gap-3">
+        <div className="arca-card border-[color:var(--color-success)] p-4 sm:p-6">
+          <div className="flex items-start gap-3">
             <Award size={28} className="text-[color:var(--color-success)]" />
-            <div>
-              <p className="text-[16px] font-semibold">Eres asesor comercial certificado de ATRIA</p>
-              <p className="text-[13px] text-[color:var(--color-text-muted)]">Certificado {cred.codigoCertificado}</p>
+            <div className="min-w-0">
+              <p className="break-words text-[16px] font-semibold">Eres asesor comercial certificado de ATRIA</p>
+              <p className="break-all text-[13px] text-[color:var(--color-text-muted)]">Certificado {cred.codigoCertificado}</p>
             </div>
           </div>
 
@@ -115,12 +115,12 @@ export default function CertificacionPage() {
             Al iniciar sesión por primera vez deberás cambiar tu contraseña.
           </div>
 
-          <Link href="/login" className="arca-btn arca-btn-brand mt-5">
+          <Link href="/login" className="arca-btn arca-btn-brand mt-5 w-full sm:w-auto">
             Ir a iniciar sesión
           </Link>
         </div>
 
-        <div className="arca-card mt-5 p-6">
+        <div className="arca-card mt-5 p-4 sm:p-6">
           <p className="text-[16px] font-semibold">Únete a la comunidad de vendedores</p>
           <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
             Entra al grupo de WhatsApp para novedades, dudas y apoyo entre vendedores certificados.
@@ -130,7 +130,7 @@ export default function CertificacionPage() {
               href={MARCA.grupoWhatsApp}
               target="_blank"
               rel="noreferrer"
-              className="arca-btn arca-btn-brand"
+              className="arca-btn arca-btn-brand w-full sm:w-auto"
             >
               <MessageCircle size={16} /> Unirme al grupo de WhatsApp
             </a>
@@ -138,7 +138,7 @@ export default function CertificacionPage() {
               href={enlaceWhatsApp(MARCA.whatsappSoporte, "Hola, ya me certifiqué como vendedor ATRIA y tengo una consulta.")}
               target="_blank"
               rel="noreferrer"
-              className="arca-btn arca-btn-secondary"
+              className="arca-btn arca-btn-secondary w-full sm:w-auto"
             >
               <LifeBuoy size={16} /> Soporte técnico
             </a>
@@ -156,7 +156,7 @@ export default function CertificacionPage() {
         breadcrumb={[{ label: "Academia", href: "/academia" }, { label: "Certificación" }]}
       />
 
-      <div className="arca-card mb-6 p-5">
+      <div className="arca-card mb-6 p-4 sm:p-5">
         <h2 className="text-[16px] font-semibold">Requisitos</h2>
         <ul className="mt-3 space-y-2.5">
           {items.map((it) => (
@@ -175,7 +175,7 @@ export default function CertificacionPage() {
       </div>
 
       {!req?.terminosAceptados && (
-        <div className="arca-card mb-6 p-5">
+        <div className="arca-card mb-6 p-4 sm:p-5">
           <h2 className="text-[16px] font-semibold">Términos y condiciones</h2>
           <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
             Lee y acepta cada documento. Se registra la versión, fecha y hora de aceptación.
@@ -206,13 +206,13 @@ export default function CertificacionPage() {
               <span className="text-[13px] text-[color:var(--color-text-secondary)]">Confirmo que respetaré las reglas éticas del programa.</span>
             </label>
           </div>
-          <Button variant="primary" className="mt-4" disabled={!todosDocs} loading={guardando} onClick={aceptarTerminos}>
+          <Button variant="primary" className="mt-4 w-full sm:w-auto" disabled={!todosDocs} loading={guardando} onClick={aceptarTerminos}>
             Aceptar términos
           </Button>
         </div>
       )}
 
-      <div className="arca-card p-5">
+      <div className="arca-card p-4 sm:p-5">
         <h2 className="text-[16px] font-semibold">Certificarme</h2>
         <p className="mt-1 text-[13px] text-[color:var(--color-text-muted)]">
           Al certificarte, el sistema creará tus credenciales de vendedor automáticamente.
@@ -220,7 +220,7 @@ export default function CertificacionPage() {
         <Button
           variant="brand"
           size="lg"
-          className="mt-4"
+          className="mt-4 w-full sm:w-auto"
           disabled={!req?.cumpleTodo}
           loading={certificando}
           onClick={certificar}
@@ -240,14 +240,14 @@ export default function CertificacionPage() {
 function Dato({ label, valor, mono, resaltar }: { label: string; valor: string; mono?: boolean; resaltar?: boolean }) {
   const { toast } = useToast();
   return (
-    <div className={`rounded-md border p-3 ${resaltar ? "border-[color:var(--color-tertiary)] bg-[color:var(--color-surface-2)]" : "border-[color:var(--color-border)]"}`}>
+    <div className={`min-w-0 rounded-md border p-3 ${resaltar ? "border-[color:var(--color-tertiary)] bg-[color:var(--color-surface-2)]" : "border-[color:var(--color-border)]"}`}>
       <p className="text-label">{label}</p>
       <div className="mt-1 flex items-center justify-between gap-2">
-        <span className={`text-[14px] font-semibold ${mono ? "font-mono" : ""}`}>{valor}</span>
+        <span className={`min-w-0 break-all text-[14px] font-semibold ${mono ? "font-mono" : ""}`}>{valor}</span>
         <button
           type="button"
           onClick={() => { navigator.clipboard?.writeText(valor); toast("Copiado.", "success"); }}
-          className="text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)]"
+          className="shrink-0 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)]"
           aria-label="Copiar"
         >
           <Copy size={14} />
